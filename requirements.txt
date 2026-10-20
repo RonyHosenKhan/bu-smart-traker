@@ -1,0 +1,2 @@
+# BU Smart Bus - Requirements
+# The project runs using standard Python libraries.

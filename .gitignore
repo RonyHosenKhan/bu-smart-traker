@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+.gemini/
+latest_locations.json
