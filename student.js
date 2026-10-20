@@ -477,23 +477,14 @@ const BU_STUDENT = {
                 if (!data || typeof data !== 'object') return;
 
                 const busesMap = data.busId ? { [data.busId]: data } : data;
-                const activeServerIds = new Set();
 
                 for (const [busId, loc] of Object.entries(busesMap)) {
                     if (loc && loc.lat && loc.lng) {
                         if (loc.trackingStatus === 'STOPPED' || loc.isStopped) {
                             this.removeBusMarker(busId);
                         } else {
-                            activeServerIds.add(busId);
                             this.onLiveLocationReceived(loc);
                         }
-                    }
-                }
-
-                // Any bus marker currently on map that is no longer returned as active by server should be erased
-                for (const localBusId in this.busMarkers) {
-                    if (!activeServerIds.has(localBusId)) {
-                        this.removeBusMarker(localBusId);
                     }
                 }
             })
