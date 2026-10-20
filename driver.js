@@ -179,19 +179,78 @@ const BU_DRIVER = {
         document.getElementById("driver-bus-select").disabled = false;
 
         const badge = document.getElementById("driver-trip-badge");
-        badge.textContent = "STOPPED";
-        badge.className = "badge status-offline";
+        if (badge) {
+            badge.textContent = "STOPPED";
+            badge.className = "badge status-offline";
+        }
 
         const livePill = document.getElementById("driver-live-indicator");
         if (livePill) livePill.style.display = "none";
         const mobBadge = document.getElementById("mob-driver-live-badge");
         if (mobBadge) mobBadge.style.display = "none";
 
-        this.currentLocation.trackingStatus = "STOPPED";
-        this.currentLocation.timestamp = Date.now();
-        this.currentLocation.speed = 0;
-        this.broadcastLocation();
+        const stopPayload = {
+            busId: this.activeBusId,
+            routeId: this.activeRouteId,
+            trackingStatus: "STOPPED",
+            isStopped: true,
+            timestamp: Date.now(),
+            speed: 0
+        };
+
+        this.broadcastStop(stopPayload);
         this.updateTelemetryUI();
+    },
+
+    broadcastStop: function (stopPayload) {
+        const payload = JSON.stringify(stopPayload);
+
+        // 1. Same-device multi-tab BroadcastChannel
+        try {
+            if (this.channel) {
+                this.channel.postMessage({
+                    type: "BUS_STOP_TRIP",
+                    busId: this.activeBusId,
+                    data: stopPayload
+                });
+            }
+        } catch (e) {}
+
+        // 2. Storage event
+        try {
+            localStorage.removeItem(`BU_LIVE_LOCATION_${this.activeBusId}`);
+            localStorage.setItem("BU_BUS_STOPPED_EVENT", payload);
+        } catch (e) {}
+
+        // 3. Local & Cloud Server REST API (POST STOPPED + DELETE)
+        try {
+            fetch('/api/location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: payload
+            }).catch(() => {});
+
+            fetch(`/api/location?busId=${this.activeBusId}`, {
+                method: 'DELETE'
+            }).catch(() => {});
+        } catch (e) {}
+
+        // 4. Free Cloud Pub/Sub relay (ntfy.sh)
+        try {
+            fetch(`https://ntfy.sh/bu_bus_live_all`, {
+                method: 'POST',
+                body: payload
+            }).catch(() => {});
+            fetch(`https://ntfy.sh/bu_bus_live_${this.activeBusId}`, {
+                method: 'POST',
+                body: payload
+            }).catch(() => {});
+        } catch (e) {}
+
+        // 5. Update local student engine immediately
+        if (window.BU_STUDENT && typeof window.BU_STUDENT.onBusStopped === 'function') {
+            window.BU_STUDENT.onBusStopped(this.activeBusId);
+        }
     },
 
     startSimulation: function () {
@@ -374,6 +433,10 @@ const BU_DRIVER = {
 
         // 4. Free Cloud Pub/Sub relay (ntfy.sh) for cellular/internet cross-device sync
         try {
+            fetch(`https://ntfy.sh/bu_bus_live_all`, {
+                method: 'POST',
+                body: payload
+            }).catch(() => {});
             fetch(`https://ntfy.sh/bu_bus_live_${this.activeBusId}`, {
                 method: 'POST',
                 body: payload

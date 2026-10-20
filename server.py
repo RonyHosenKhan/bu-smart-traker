@@ -54,7 +54,7 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         # Enable CORS for cross-device access
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         # Prevent browser & proxy caching for all assets so mobile updates apply instantly
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
@@ -69,10 +69,21 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         
-        # 1. API: Get Latest Location(s)
+        # 1. API: Get Latest Location(s) for All Active Buses
         if parsed.path == '/api/location':
             query = parse_qs(parsed.query)
             bus_id = query.get('busId', [None])[0]
+
+            now_ms = int(time.time() * 1000)
+            # Prune buses that stopped or haven't sent updates in > 60 seconds
+            stale_buses = [
+                bid for bid, loc in LIVE_BUS_LOCATIONS.items()
+                if (loc.get('trackingStatus') == 'STOPPED' or 
+                    loc.get('isStopped') or 
+                    (now_ms - loc.get('serverTimestamp', now_ms) > 60000))
+            ]
+            for bid in stale_buses:
+                LIVE_BUS_LOCATIONS.pop(bid, None)
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -110,7 +121,7 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
 
-        # 1. API: Driver Live GPS Broadcast Upload
+        # 1. API: Driver Live GPS Broadcast Upload or Stop
         if parsed.path == '/api/location':
             try:
                 content_length = int(self.headers.get('Content-Length', 0))
@@ -123,6 +134,21 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
                     self.wfile.write(b'{"error":"Missing busId"}')
+                    return
+
+                # If Driver stopped trip, instantly remove from active cache & disk
+                if data.get('trackingStatus') == 'STOPPED' or data.get('isStopped'):
+                    LIVE_BUS_LOCATIONS.pop(bus_id, None)
+                    try:
+                        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+                            json.dump(LIVE_BUS_LOCATIONS, f)
+                    except Exception:
+                        pass
+
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "stopped", "busId": bus_id}).encode('utf-8'))
                     return
 
                 # Record server timestamp and update active cache
@@ -155,6 +181,26 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
                 return
 
+        self.send_response(404)
+        self.end_headers()
+
+    def do_DELETE(self):
+        parsed = urlparse(self.path)
+        if parsed.path == '/api/location':
+            query = parse_qs(parsed.query)
+            bus_id = query.get('busId', [None])[0]
+            if bus_id and bus_id in LIVE_BUS_LOCATIONS:
+                LIVE_BUS_LOCATIONS.pop(bus_id, None)
+                try:
+                    with open(CACHE_FILE, "w", encoding="utf-8") as f:
+                        json.dump(LIVE_BUS_LOCATIONS, f)
+                except Exception:
+                    pass
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "removed", "busId": bus_id}).encode('utf-8'))
+            return
         self.send_response(404)
         self.end_headers()
 
