@@ -491,9 +491,14 @@ const BU_STUDENT = {
                 }
 
                 // Any bus marker currently on map that is no longer returned as active by server should be erased
+                // ONLY IF it hasn't received any local/pubsub update in > 45 seconds or was explicitly marked stopped
                 for (const localBusId in this.busMarkers) {
                     if (!activeServerIds.has(localBusId)) {
-                        this.removeBusMarker(localBusId);
+                        const localBus = this.activeBuses[localBusId];
+                        const lastTime = localBus ? (localBus.timestamp || 0) : 0;
+                        if (Date.now() - lastTime > 45000) {
+                            this.removeBusMarker(localBusId);
+                        }
                     }
                 }
             })

@@ -6,7 +6,7 @@ const BU_DRIVER = {
     activeBusId: "BUS_BRTC_04",
     activeRouteId: "ROUTE_01",
     isTracking: false,
-    isSimMode: false, // Default to REAL DEVICE GPS as requested
+    isSimMode: true, // Default to Route Demo so testing immediately shows live bus moving on map
     simSpeedKmh: 35,
     updateCount: 0,
     watchId: null,
@@ -140,27 +140,66 @@ const BU_DRIVER = {
         }
     },
 
+    broadcastInitialPoint: function () {
+        const bus = BU_ROUTES_DATA.buses.find(b => b.id === this.activeBusId);
+        const wps = this.simState.waypoints;
+        const initialCoord = (wps && wps.length > 0) ? wps[0] : { lat: 22.69749, lng: 90.36998 };
+
+        this.currentLocation = {
+            busId: this.activeBusId,
+            routeId: this.activeRouteId,
+            driverName: bus ? bus.driver : "Driver",
+            lat: initialCoord.lat,
+            lng: initialCoord.lng,
+            speed: 0,
+            accuracy: 8,
+            heading: 195,
+            timestamp: Date.now(),
+            trackingStatus: "ACTIVE",
+            source: "INITIAL_START"
+        };
+        this.updateCount = 1;
+        this.broadcastLocation();
+        this.updateTelemetryUI();
+    },
+
     startTrip: function () {
         this.isTracking = true;
         this.updateCount = 0;
         this.lastGpsPoint = null;
 
-        document.getElementById("btn-start-trip").disabled = true;
-        document.getElementById("btn-stop-trip").disabled = false;
-        document.getElementById("driver-bus-select").disabled = true;
+        const startBtn = document.getElementById("btn-start-trip");
+        const stopBtn = document.getElementById("btn-stop-trip");
+        const busSelect = document.getElementById("driver-bus-select");
+        const viewMapBtn = document.getElementById("btn-driver-view-map");
+
+        if (startBtn) startBtn.disabled = true;
+        if (stopBtn) stopBtn.disabled = false;
+        if (busSelect) busSelect.disabled = true;
+        if (viewMapBtn) viewMapBtn.style.display = "flex";
 
         const badge = document.getElementById("driver-trip-badge");
-        badge.textContent = this.isSimMode ? "SIMULATING ROUTE" : "CONNECTING TO GPS...";
-        badge.className = "badge status-active";
+        if (badge) {
+            badge.textContent = this.isSimMode ? "SIMULATING ROUTE" : "CONNECTING TO GPS...";
+            badge.className = "badge status-active";
+        }
 
         const livePill = document.getElementById("driver-live-indicator");
         if (livePill) livePill.style.display = "inline-block";
         const mobBadge = document.getElementById("mob-driver-live-badge");
         if (mobBadge) mobBadge.style.display = "inline-block";
 
+        // Auto sync Student View to this bus so the map tracks this bus immediately
+        if (window.BU_STUDENT) {
+            window.BU_STUDENT.selectedBusId = this.activeBusId;
+            const stuBusSelect = document.getElementById("student-bus-select");
+            if (stuBusSelect) stuBusSelect.value = this.activeBusId;
+        }
+
         if (this.isSimMode) {
             this.startSimulation();
         } else {
+            this.broadcastInitialPoint();
             this.startHardwareGps();
         }
     },
@@ -177,6 +216,9 @@ const BU_DRIVER = {
         document.getElementById("btn-start-trip").disabled = false;
         document.getElementById("btn-stop-trip").disabled = true;
         document.getElementById("driver-bus-select").disabled = false;
+
+        const viewMapBtn = document.getElementById("btn-driver-view-map");
+        if (viewMapBtn) viewMapBtn.style.display = "none";
 
         const badge = document.getElementById("driver-trip-badge");
         if (badge) {
@@ -254,6 +296,9 @@ const BU_DRIVER = {
     },
 
     startSimulation: function () {
+        if (this.simIntervalId) clearInterval(this.simIntervalId);
+        // Immediate step on tick 0 so the bus immediately moves and appears on the map!
+        this.stepSimulation();
         this.simIntervalId = setInterval(() => {
             if (!this.isTracking) return;
             this.stepSimulation();

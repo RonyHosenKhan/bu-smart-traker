@@ -711,6 +711,34 @@
                         <span class="badge" id="driver-trip-badge">IDLE / STOPPED</span>
                     </div>
 
+                    <!-- Mode Selection: Route Demo Simulation vs Real Device GPS -->
+                    <div class="driver-mode-selection" style="margin-bottom: 12px;">
+                        <label class="mode-selection-title" style="display:block; font-size:0.8rem; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">
+                            Select GPS Source (জিপিএস সোর্স):
+                        </label>
+                        <div class="mode-tabs">
+                            <button type="button" class="mode-tab active" id="tab-mode-sim" onclick="setDriverMode(true)">
+                                <span class="tab-icon">🤖</span>
+                                <div class="tab-text">
+                                    <b>Route Demo (ভার্চুয়াল টেস্ট ডেমো)</b>
+                                    <small>Auto move bus along Barishal roads</small>
+                                </div>
+                            </button>
+                            <button type="button" class="mode-tab" id="tab-mode-real" onclick="setDriverMode(false)">
+                                <span class="tab-icon">📱</span>
+                                <div class="tab-text">
+                                    <b>Real Device GPS (প্রকৃত জিপিএস)</b>
+                                    <small>Live hardware GPS from mobile</small>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="sim-controls" class="sim-speed-box" style="display: flex; margin-bottom: 14px;">
+                        <label for="sim-speed-slider">Demo Speed: <b id="sim-speed-label">35 km/h</b></label>
+                        <input type="range" id="sim-speed-slider" min="10" max="70" value="35" oninput="updateSimSpeed(this.value)">
+                    </div>
+
                     <div class="action-buttons-grid">
                         <button class="btn btn-primary btn-lg" id="btn-start-trip" onclick="startDriverTrip()">
                             ▶️ Start Trip & Broadcast GPS
@@ -719,6 +747,10 @@
                             ⏹️ Stop Trip
                         </button>
                     </div>
+
+                    <button type="button" class="btn btn-outline" id="btn-driver-view-map" onclick="setMobileView('map'); BU_STUDENT.focusBus();" style="margin-top: 10px; width: 100%; display: none; align-items: center; justify-content: center; gap: 6px;">
+                        🗺️ ম্যাপে লাইভ বাস দেখুন (View on Live Map)
+                    </button>
                 </div>
 
                 <!-- Driver Live Telemetry Card -->
@@ -944,12 +976,12 @@ npx cap open android</pre>
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- Application Modules (with cache busters) -->
-    <script src="data.js?v=20261017_4"></script>
-    <script src="eta.js?v=20261017_4"></script>
-    <script src="driver.js?v=20261017_4"></script>
-    <script src="student.js?v=20261017_4"></script>
-    <script src="admin.js?v=20261017_4"></script>
-    <script src="app.js?v=20261017_4"></script>
+    <script src="data.js?v=20261022_1"></script>
+    <script src="eta.js?v=20261022_1"></script>
+    <script src="driver.js?v=20261022_1"></script>
+    <script src="student.js?v=20261022_1"></script>
+    <script src="admin.js?v=20261022_1"></script>
+    <script src="app.js?v=20261022_1"></script>
 </body>
 
 </html>

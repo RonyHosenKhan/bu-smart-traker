@@ -135,7 +135,7 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
 
             # If not yet compiled locally, redirect to verified GitHub Release APK
             self.send_response(302)
-            self.send_header('Location', 'https://github.com/RonyHosenKhan/bu-smart-traker/releases/download/v1.0.2/app-debug.apk')
+            self.send_header('Location', 'https://github.com/RonyHosenKhan/bu-smart-traker/releases/download/v1.0.3/app-debug.apk')
             self.end_headers()
             return
 
