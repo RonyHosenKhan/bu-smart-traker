@@ -728,6 +728,38 @@ body {
     text-decoration: underline;
 }
 
+/* Compact Route Legend Pill */
+.route-legend.route-legend-mini {
+    padding: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(15, 76, 129, 0.18);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.legend-gmaps-btn-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0F4C81;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.legend-gmaps-btn-mini:hover {
+    background: rgba(15, 76, 129, 0.08);
+}
+
 .overlay-quick-controls {
     display: flex;
     flex-direction: column;
@@ -1597,28 +1629,28 @@ body {
 
     /* Map Overlays on Mobile */
     .map-floating-overlay {
-        top: 72px;
-        right: 10px;
-        gap: 8px;
+        top: 68px;
+        right: 8px;
+        gap: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
     }
 
-    .route-legend {
-        padding: 8px 10px;
-        max-width: 175px;
-        border-radius: var(--radius-sm);
+    .route-legend,
+    .route-legend-mini {
+        padding: 0 !important;
+        border-radius: 999px !important;
+        background: rgba(255, 255, 255, 0.96) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        max-width: none !important;
     }
 
-    .legend-header {
-        font-size: 0.8rem;
-    }
-
-    .legend-stats {
-        font-size: 0.7rem;
-    }
-
-    .legend-gmaps-btn {
-        font-size: 0.68rem;
-        padding: 2px 6px;
+    .legend-gmaps-btn-mini {
+        font-size: 0.78rem !important;
+        padding: 6px 12px !important;
     }
 
     .overlay-quick-controls {
@@ -1626,10 +1658,22 @@ body {
     }
 
     .map-icon-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 1.1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.15rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+    }
+
+    /* Position Leaflet controls cleanly above mobile bottom nav */
+    .leaflet-bottom.leaflet-right {
+        bottom: 74px !important;
+        right: 12px !important;
+    }
+
+    .leaflet-bottom.leaflet-left {
+        bottom: 74px !important;
+        left: 12px !important;
     }
 
     /* Manual GPS Card on Mobile as Bottom Sheet */

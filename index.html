@@ -380,35 +380,99 @@
                 top: 68px !important;
                 right: 8px !important;
                 gap: 6px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-end !important;
             }
 
-            .route-legend {
-                padding: 6px 10px !important;
-                max-width: 160px !important;
-                font-size: 0.75rem !important;
+            .route-legend,
+            .route-legend-mini {
+                padding: 0 !important;
+                background: rgba(255, 255, 255, 0.96) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid rgba(15, 76, 129, 0.2) !important;
+                border-radius: 999px !important;
+                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+                margin-bottom: 2px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+            }
+
+            .legend-gmaps-btn,
+            .legend-gmaps-btn-mini {
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                padding: 6px 12px !important;
+                font-size: 0.78rem !important;
+                font-weight: 700 !important;
+                color: #0F4C81 !important;
+                text-decoration: none !important;
+                white-space: nowrap !important;
             }
 
             .overlay-quick-controls {
-                gap: 6px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+                align-items: flex-end !important;
             }
 
             .map-icon-btn {
-                width: 40px !important;
-                height: 40px !important;
-                font-size: 1.15rem !important;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+                width: 42px !important;
+                height: 42px !important;
+                border-radius: 12px !important;
+                font-size: 1.2rem !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
+                border: 1px solid rgba(0, 0, 0, 0.08) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                transition: transform 0.15s ease !important;
             }
 
-            /* Manual GPS bottom sheet */
-            .manual-gps-card {
-                bottom: 10px !important;
-                left: 8px !important;
-                right: 8px !important;
-                width: auto !important;
-                max-width: calc(100% - 16px) !important;
-                z-index: 1050 !important;
-                border-radius: 16px !important;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+            .map-icon-btn:active {
+                transform: scale(0.92) !important;
+            }
+
+            /* Leaflet Controls - positioned cleanly above bottom navigation */
+            .leaflet-bottom.leaflet-right {
+                bottom: 74px !important;
+                right: 12px !important;
+            }
+
+            .leaflet-bottom.leaflet-left {
+                bottom: 74px !important;
+                left: 12px !important;
+            }
+
+            .leaflet-control-zoom {
+                border: none !important;
+                border-radius: 12px !important;
+                overflow: hidden !important;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+            }
+
+            .leaflet-control-zoom a {
+                width: 38px !important;
+                height: 38px !important;
+                line-height: 38px !important;
+                font-size: 18px !important;
+                background: rgba(255, 255, 255, 0.95) !important;
+                color: #0F4C81 !important;
+                font-weight: 700 !important;
+            }
+
+            /* Hide app promo and manual GPS on mobile */
+            .apk-promo-card,
+            .manual-gps-card,
+            .btn-apk-header {
+                display: none !important;
             }
 
             /* Responsive grids */
@@ -454,9 +518,8 @@
                 </svg>
             </div>
             <div class="brand-titles">
-                <h1 class="brand-name">BU Smart Bus <span class="brand-suffix">Tracker</span></h1>
-                <span class="brand-sub">Univ of Barishal • <span class="hide-mobile">বরিশাল বিশ্ববিদ্যালয়
-                        (কীর্তনখোলা)</span><span class="show-mobile">ববি কীর্তনখোলা</span></span>
+                <h1 class="brand-name">BU Bus Tracker</h1>
+                <span class="brand-sub">University of Barishal</span>
             </div>
         </div>
 
@@ -483,7 +546,7 @@
 
         <div class="header-status">
             <button class="btn-icon-refresh" onclick="window.location.reload(true)" title="অ্যাপ রিফ্রেশ করুন">🔄</button>
-            <a href="/download-apk" class="btn-apk-header" title="Download Android APK" download="bu-smart-bus.apk">
+            <a href="/download-apk" class="btn-apk-header hide-mobile" title="Download Android APK" download="bu-smart-bus.apk">
                 <span>📱</span>
                 <span>App <span class="hide-mobile">APK</span></span>
             </a>
@@ -509,18 +572,6 @@
                 </div>
 
                 <div class="panel-section">
-                    <!-- Android App Download Card -->
-                    <div class="apk-promo-card">
-                        <div class="apk-promo-icon">📱</div>
-                        <div class="apk-promo-text">
-                            <h4>BU Smart Bus Android App</h4>
-                            <p>মোবাইলে সরাসরি ইনস্টল করুন। লাইভ জিপিএস ও ব্যাকগ্রাউন্ড ট্র্যাকিং সহ।</p>
-                        </div>
-                        <a href="/download-apk" class="btn btn-primary btn-sm" download="bu-smart-bus.apk" style="white-space:nowrap; padding:6px 10px;">
-                            ⬇️ APK
-                        </a>
-                    </div>
-
                     <h2 class="section-title">Select Route & Bus</h2>
 
                     <div class="form-group">
@@ -882,18 +933,16 @@ npx cap open android</pre>
 
             <!-- Map Floating Controls -->
             <div class="map-floating-overlay">
-                <div class="overlay-card route-legend">
-                    <div class="legend-header">
-                        <span class="legend-dot" id="legend-route-color"></span>
-                        <b id="legend-route-title">Barishal Club Route</b>
-                    </div>
-                    <div class="legend-stats">
-                        <span id="legend-stops-info">7 Stops</span> •
-                        <span id="legend-distance-info">~6.5 km total (18 min)</span>
-                    </div>
+                <div class="overlay-card route-legend route-legend-mini">
                     <a id="legend-gmaps-link" href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank"
-                        class="legend-gmaps-btn" title="Open verified route in Google Maps">🗺️ Open in Google Maps
-                        ↗</a>
+                        class="legend-gmaps-btn-mini" title="Open verified route in Google Maps">
+                        <span class="legend-dot" id="legend-route-color"></span>
+                        <span>🗺️</span>
+                        <span class="gmaps-pill-text">Google Maps ↗</span>
+                    </a>
+                    <span id="legend-route-title" style="display:none;"></span>
+                    <span id="legend-stops-info" style="display:none;"></span>
+                    <span id="legend-distance-info" style="display:none;"></span>
                 </div>
 
                 <div class="overlay-quick-controls">
@@ -904,62 +953,13 @@ npx cap open android</pre>
                         onclick="focusOnBU()">🏛️</button>
                     <button class="map-icon-btn" title="Fit Entire Route (পুরো রুট)"
                         onclick="fitRouteBounds()">🗺️</button>
-                    <button class="map-icon-btn" title="Manual GPS Coordinates (ম্যানুয়াল জিপিএস)"
-                        onclick="toggleManualGpsCard()" id="btn-toggle-gps">📍</button>
                 </div>
             </div>
 
-            <!-- Manual GPS Coordinate Locator Widget -->
-            <div class="manual-gps-card" id="manual-gps-box">
-                <div class="manual-gps-header">
-                    <div class="manual-gps-title">
-                        <span>📍</span>
-                        <b>Manual GPS Locator</b>
-                    </div>
-                    <button class="btn-sm btn-ghost" onclick="toggleManualGpsCard()" title="Close / Hide"
-                        style="padding:2px 8px; font-weight:700;">✕</button>
-                </div>
-                <div class="manual-gps-body" id="manual-gps-body">
-                    <p class="gps-hint">Enter Lat & Lng manually, click presets, or click anywhere on map:</p>
-                    <div class="gps-inputs-row">
-                        <div class="input-col">
-                            <label>Latitude (অক্ষাংশ)</label>
-                            <input type="number" id="input-manual-lat" step="any" value="22.65987"
-                                placeholder="22.65987">
-                        </div>
-                        <div class="input-col">
-                            <label>Longitude (দ্রাঘিমাংশ)</label>
-                            <input type="number" id="input-manual-lng" step="any" value="90.36211"
-                                placeholder="90.36211">
-                        </div>
-                    </div>
-
-                    <div class="gps-actions-row">
-                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="locateCustomCoordinates()">🎯
-                            Show on Map</button>
-                        <button class="btn btn-secondary btn-sm" style="flex:1;"
-                            onclick="setManualAsStudentLocation()">🎓 Set as Student Pin</button>
-                        <button class="btn btn-danger-ghost btn-sm" onclick="clearManualPin()"
-                            title="Clear Pin">✕</button>
-                    </div>
-
-                    <div class="quick-presets">
-                        <span class="preset-label">Presets:</span>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.65987, 90.36211, 'BU Campus')">BU
-                            Campus</button>
-                        <button class="preset-pill"
-                            onclick="applyPresetCoords(22.69736, 90.36993, 'Barishal Club')">Club</button>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.71038, 90.36360, 'New Bazar')">New
-                            Bazar</button>
-                        <button class="preset-pill"
-                            onclick="applyPresetCoords(22.71370, 90.35037, 'Nathullabad')">Nathullabad</button>
-                        <button class="preset-pill"
-                            onclick="applyPresetCoords(22.67850, 90.35450, 'Rupatali')">Rupatali</button>
-                    </div>
-
-                    <div id="manual-gps-result" class="gps-result-box" style="display:none;"></div>
-                </div>
-            </div>
+            <!-- Hidden coordinates placeholders to preserve JS compatibility -->
+            <input type="hidden" id="input-manual-lat" value="22.65987">
+            <input type="hidden" id="input-manual-lng" value="90.36211">
+            <div id="manual-gps-result" style="display:none;"></div>
         </section>
     </main>
 
@@ -982,10 +982,6 @@ npx cap open android</pre>
             <span class="mob-icon">⚙️</span>
             <span class="mob-label">ম্যানেজার</span>
         </button>
-        <a class="mobile-nav-btn" href="/download-apk" download="bu-smart-bus.apk" style="text-decoration:none;">
-            <span class="mob-icon">📲</span>
-            <span class="mob-label">অ্যাপ APK</span>
-        </a>
     </nav>
 
     <!-- Leaflet JS -->
