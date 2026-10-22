@@ -1,6 +1,6 @@
 {
   "appId": "com.bu.smartbus",
-  "appName": "BU Smart Bus",
+  "appName": "BU Bus Tracker",
   "webDir": "www",
   "server": {
     "androidScheme": "https",

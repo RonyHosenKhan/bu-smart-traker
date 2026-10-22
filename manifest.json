@@ -1,5 +1,5 @@
 {
-  "name": "BU Smart Bus Tracker",
+  "name": "BU Bus Tracker",
   "short_name": "BU Bus",
   "description": "University of Barishal Real-Time Smart Bus Tracking & Live GPS Cockpit",
   "start_url": "./index.html",

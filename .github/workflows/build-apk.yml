@@ -52,12 +52,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.1
-          name: BU Smart Bus Android APK v1.0.1 (Latest)
+          tag_name: v1.0.2
+          name: BU Bus Tracker Android APK v1.0.2 (Latest)
           overwrite: true
           body: |
-            ## 🚍 BU Smart Bus Tracker - Latest Android App (.APK)
-            Official Android APK build for University of Barishal Smart Bus Live GPS Tracker.
+            ## 🚍 BU Bus Tracker - Latest Android App (.APK)
+            Official Android APK build for University of Barishal Bus Tracking System.
             
             - **Real-time Live GPS Tracking**
             - **Background Location Service Support**
