@@ -4,3 +4,7 @@ __pycache__/
 .vscode/
 .gemini/
 latest_locations.json
+node_modules/
+android/app/build/
+android/.gradle/
+android/build/

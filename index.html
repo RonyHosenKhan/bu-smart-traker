@@ -1,30 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BU Smart Bus Tracker — University of Barishal</title>
-    <meta name="description" content="Real-time University of Barishal bus tracking system with live GPS, route stops, ETA calculation, and driver-student synchronisation.">
+    <meta name="description"
+        content="Real-time University of Barishal bus tracking system with live GPS, route stops, ETA calculation, and driver-student synchronisation.">
 
     <!-- Google Fonts: Outfit & Bengali Font (Hind Siliguri) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
 
     <!-- Leaflet Map CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
     <!-- Custom CSS with cache-busting version -->
     <link rel="stylesheet" href="style.css?v=20261018_rev9">
 
+    <!-- PWA & Android Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/svg+xml" href="icons/bus-icon.svg">
+    <link rel="apple-touch-icon" href="icons/bus-icon.svg">
+
     <!-- Critical Inlined Mobile Responsive Engine (Overrides caching) -->
     <style>
         /* Mobile Visibility Utilities */
-        .show-mobile { display: none !important; }
-        .hide-mobile { display: inline !important; }
+        .show-mobile {
+            display: none !important;
+        }
+
+        .hide-mobile {
+            display: inline !important;
+        }
 
         @media (max-width: 991px) {
-            html, body {
+
+            html,
+            body {
                 height: 100% !important;
                 height: 100dvh !important;
                 margin: 0 !important;
@@ -32,8 +53,13 @@
                 overflow: hidden !important;
             }
 
-            .show-mobile { display: flex !important; }
-            .hide-mobile { display: none !important; }
+            .show-mobile {
+                display: flex !important;
+            }
+
+            .hide-mobile {
+                display: none !important;
+            }
 
             /* Header Compact Mode */
             .app-header {
@@ -172,9 +198,17 @@
                 border: 2px solid white !important;
             }
 
-            .mobile-map-pill .pill-status-dot.active { background: #10B981 !important; }
-            .mobile-map-pill .pill-status-dot.stale { background: #F59E0B !important; }
-            .mobile-map-pill .pill-status-dot.offline { background: #EF4444 !important; }
+            .mobile-map-pill .pill-status-dot.active {
+                background: #10B981 !important;
+            }
+
+            .mobile-map-pill .pill-status-dot.stale {
+                background: #F59E0B !important;
+            }
+
+            .mobile-map-pill .pill-status-dot.offline {
+                background: #EF4444 !important;
+            }
 
             .mobile-map-pill .pill-info {
                 display: flex !important;
@@ -398,13 +432,15 @@
                 font-size: 0.92rem !important;
             }
 
-            .custom-select, .custom-input {
+            .custom-select,
+            .custom-input {
                 min-height: 44px !important;
                 font-size: 0.95rem !important;
             }
         }
     </style>
 </head>
+
 <body class="mobile-show-map">
     <!-- Top Navigation Bar -->
     <header class="app-header">
@@ -419,7 +455,8 @@
             </div>
             <div class="brand-titles">
                 <h1 class="brand-name">BU Smart Bus <span class="brand-suffix">Tracker</span></h1>
-                <span class="brand-sub">Univ of Barishal • <span class="hide-mobile">বরিশাল বিশ্ববিদ্যালয় (কীর্তনখোলা)</span><span class="show-mobile">ববি কীর্তনখোলা</span></span>
+                <span class="brand-sub">Univ of Barishal • <span class="hide-mobile">বরিশাল বিশ্ববিদ্যালয়
+                        (কীর্তনখোলা)</span><span class="show-mobile">ববি কীর্তনখোলা</span></span>
             </div>
         </div>
 
@@ -445,6 +482,10 @@
         </nav>
 
         <div class="header-status">
+            <a href="/download-apk" class="btn-apk-header" title="Download Android APK" download="bu-smart-bus.apk">
+                <span>📱</span>
+                <span>App <span class="hide-mobile">APK</span></span>
+            </a>
             <div class="system-time" id="header-time">11:30 AM</div>
             <div class="network-badge online" id="connection-status">
                 <span class="dot"></span> Online
@@ -467,8 +508,20 @@
                 </div>
 
                 <div class="panel-section">
+                    <!-- Android App Download Card -->
+                    <div class="apk-promo-card">
+                        <div class="apk-promo-icon">📱</div>
+                        <div class="apk-promo-text">
+                            <h4>BU Smart Bus Android App</h4>
+                            <p>মোবাইলে সরাসরি ইনস্টল করুন। লাইভ জিপিএস ও ব্যাকগ্রাউন্ড ট্র্যাকিং সহ।</p>
+                        </div>
+                        <a href="/download-apk" class="btn btn-primary btn-sm" download="bu-smart-bus.apk" style="white-space:nowrap; padding:6px 10px;">
+                            ⬇️ APK
+                        </a>
+                    </div>
+
                     <h2 class="section-title">Select Route & Bus</h2>
-                    
+
                     <div class="form-group">
                         <label for="student-route-select">Route (রুট):</label>
                         <select id="student-route-select" class="custom-select" onchange="onStudentRouteChange()">
@@ -567,7 +620,8 @@
                 <div class="card schedule-card">
                     <h3 class="card-heading" style="display:flex; justify-content:space-between; align-items:center;">
                         <span>🕒 Bus Schedule (সময়সূচী)</span>
-                        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Notice Board</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Notice
+                            Board</span>
                     </h3>
                     <div id="schedule-container" style="max-height: 180px; overflow-y: auto;">
                         <!-- Populated dynamically based on route -->
@@ -607,7 +661,7 @@
                 <!-- Driver Live Controller Box -->
                 <div class="card driver-ctrl-card">
                     <div class="trip-status-row">
-                        <span>Selected Bus Status:</span>
+                        <span>Trip Status:</span>
                         <span class="badge" id="driver-trip-badge">IDLE / STOPPED</span>
                     </div>
 
@@ -620,30 +674,12 @@
                         </button>
                     </div>
 
-                    <!-- Multi-Bus Fleet Quick Launcher -->
-                    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed #CBD5E1;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <b style="font-size:0.85rem; color:#0F4C81;">🚌 Multi-Bus Fleet Dispatch (একাধিক বাস একসাথে চালান):</b>
-                            <span id="active-trips-count-badge" class="badge status-offline" style="font-size:0.7rem;">0 Active</span>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                            <button type="button" class="btn btn-sm btn-outline" style="background:#F0FDF4; border-color:#22C55E; color:#15803D; font-weight:600; padding: 7px 4px; font-size: 0.75rem;" onclick="BU_DRIVER.startAllRoutesSim()">
-                                🚀 সব রুটে ১টি করে চালু (Launch All)
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline" style="background:#FEF2F2; border-color:#EF4444; color:#B91C1C; font-weight:600; padding: 7px 4px; font-size: 0.75rem;" onclick="BU_DRIVER.stopAllTrips()">
-                                🛑 সব বাস একসাথে বন্ধ (Stop All)
-                            </button>
-                        </div>
-                        <div id="active-trips-list" style="display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto;">
-                            <!-- Active running buses listed here -->
-                        </div>
-                    </div>
-
                     <!-- Mode Selection: Real Device GPS vs Virtual Simulator -->
                     <div class="driver-mode-selection">
                         <label class="mode-selection-title">Select GPS Source (জিপিএস সোর্স):</label>
                         <div class="mode-tabs">
-                            <button type="button" class="mode-tab active" id="tab-mode-real" onclick="setDriverMode(false)">
+                            <button type="button" class="mode-tab active" id="tab-mode-real"
+                                onclick="setDriverMode(false)">
                                 <span class="tab-icon">📱</span>
                                 <div class="tab-text">
                                     <b>Real Device GPS (প্রকৃত জিপিএস)</b>
@@ -662,7 +698,8 @@
 
                     <div id="sim-controls" class="sim-speed-box" style="display: none;">
                         <label for="sim-speed-slider">Simulation Speed: <b id="sim-speed-label">35 km/h</b></label>
-                        <input type="range" id="sim-speed-slider" min="10" max="70" value="35" oninput="updateSimSpeed(this.value)">
+                        <input type="range" id="sim-speed-slider" min="10" max="70" value="35"
+                            oninput="updateSimSpeed(this.value)">
                     </div>
 
                     <!-- Mobile Phone Connection Helper -->
@@ -673,16 +710,19 @@
                         </div>
                         <div class="mobile-url-row" style="margin-bottom: 8px;">
                             <code id="mobile-live-url">https://bu-smart-bus-web.onrender.com</code>
-                            <button class="btn btn-sm btn-outline" onclick="copyLiveUrl()" id="btn-copy-live-url">📋 Copy</button>
+                            <button class="btn btn-sm btn-outline" onclick="copyLiveUrl()" id="btn-copy-live-url">📋
+                                Copy</button>
                         </div>
                         <div style="font-size:0.75rem; color:#166534; margin-bottom:6px;">
                             ☁️ <b>ক্লাউড হোস্টেড:</b> আপনার পিসি বন্ধ থাকলেও এই লিংকটি ২৪ ঘণ্টা সার্বক্ষণিক সচল থাকবে।
                         </div>
                         <div style="font-size:0.72rem; color:#64748b; margin-bottom:4px;">
-                            📶 <b>লোকাল আইপি (Local Fallback):</b> <code id="mobile-server-url">http://localhost:5500</code>
+                            📶 <b>লোকাল আইপি (Local Fallback):</b> <code
+                                id="mobile-server-url">http://localhost:5500</code>
                         </div>
                         <p class="subtext" style="margin-top:6px; font-size:0.75rem;">
-                            বাস চালক গাড়িতে বসে ফোনের যেকোনো ব্রাউজারে এই লিংকটি খুলে <b>Start Trip</b> চাপলে রিয়েল-টাইম জিপিএস লোকেশন সরাসরি ম্যাপে ছাত্র-ছাত্রীরা দেখতে পারবে।
+                            বাস চালক গাড়িতে বসে ফোনের যেকোনো ব্রাউজারে এই লিংকটি খুলে <b>Start Trip</b> চাপলে রিয়েল-টাইম
+                            জিপিএস লোকেশন সরাসরি ম্যাপে ছাত্র-ছাত্রীরা দেখতে পারবে।
                         </p>
                     </div>
                 </div>
@@ -715,7 +755,8 @@
                 </div>
 
                 <div class="alert alert-info">
-                    <span>🔒 <b>Driver Security:</b> Drivers are prevented from overwriting location records of other buses as enforced by Firebase rules.</span>
+                    <span>🔒 <b>Driver Security:</b> Drivers are prevented from overwriting location records of other
+                        buses as enforced by Firebase rules.</span>
                 </div>
             </section>
 
@@ -733,12 +774,14 @@
                     <p class="subtext">Configure verified latitude/longitude coordinates for Barishal bus stops.</p>
 
                     <div class="alert alert-warning">
-                        <span>📍 <b>Coordinate Verification Rule:</b> Initial stops are flagged as <code>unverified</code>. Click "Capture from Map" or enter official GPS survey coordinates to verify a stop.</span>
+                        <span>📍 <b>Coordinate Verification Rule:</b> Initial stops are flagged as
+                            <code>unverified</code>. Click "Capture from Map" or enter official GPS survey coordinates
+                            to verify a stop.</span>
                     </div>
 
                     <div class="card admin-editor-card">
                         <h3 class="card-heading">Edit Selected Stop</h3>
-                        
+
                         <div class="form-group">
                             <label for="admin-stop-select">Select Stop:</label>
                             <select id="admin-stop-select" class="custom-select" onchange="loadStopForAdminEdit()">
@@ -794,14 +837,22 @@
 
                 <div class="panel-section docs-content">
                     <h2 class="section-title">📄 Project Architecture & CSE Documentation</h2>
-                    
+
                     <h3>University of Barishal Bus Routing Structure</h3>
-                    <p>Beside the Kirtankhola river, the bus fleet operates across three verified artery routes connecting Barishal city to the campus at Karnakati:</p>
-                    
+                    <p>Beside the Kirtankhola river, the bus fleet operates across three verified artery routes
+                        connecting Barishal city to the campus at Karnakati:</p>
+
                     <ul class="docs-list">
-                        <li><b>ROUTE_01 (Barishal Club):</b> Barishal Club Limited to University of Barishal Campus (6.5 km, ~18 min). <a href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank" style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
-                        <li><b>ROUTE_02 (Natun Bazar):</b> 7 stops via Natun Bazar, Bottola Mor, Karim Kutir (Major M A Jalil Rd direct), Chowmatha Autostand, Amtola Bus Stop, Rupatoli Roundabout, BU Campus (10.4 km, ~32 min). <a href="https://maps.app.goo.gl/SaP8cqCmoT3Mytny8" target="_blank" style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
-                        <li><b>ROUTE_03 (Nathullabad):</b> Nathullabad to University of Barishal Campus (7.7 km, ~19 min). <a href="https://maps.app.goo.gl/chtPYLhJ5Bkz8TCW7" target="_blank" style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                        <li><b>ROUTE_01 (Barishal Club):</b> Barishal Club Limited to University of Barishal Campus (6.5
+                            km, ~18 min). <a href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                        <li><b>ROUTE_02 (Natun Bazar):</b> 7 stops via Natun Bazar, Bottola Mor, Karim Kutir (Major M A
+                            Jalil Rd direct), Chowmatha Autostand, Amtola Bus Stop, Rupatoli Roundabout, BU Campus (10.4
+                            km, ~32 min). <a href="https://maps.app.goo.gl/SaP8cqCmoT3Mytny8" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                        <li><b>ROUTE_03 (Nathullabad):</b> Nathullabad to University of Barishal Campus (7.7 km, ~19
+                            min). <a href="https://maps.app.goo.gl/chtPYLhJ5Bkz8TCW7" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
                     </ul>
 
                     <h3>Mathematical Models Used</h3>
@@ -815,7 +866,8 @@
                     </div>
 
                     <h3>Firebase Database & Android Conversion</h3>
-                    <p>This web dashboard uses the exact same data schema as the native Kotlin Android project created in <code>bu-smart-bus-tracker</code>. To convert this directly to an Android APK, run:</p>
+                    <p>This web dashboard uses the exact same data schema as the native Kotlin Android project created
+                        in <code>bu-smart-bus-tracker</code>. To convert this directly to an Android APK, run:</p>
                     <pre class="code-snippet">npx @capacitor/cli create
 npx cap add android
 npx cap open android</pre>
@@ -827,7 +879,8 @@ npx cap open android</pre>
         <!-- Right Side: Interactive Live Map Viewport -->
         <section class="map-viewport-container" id="map-viewport-container">
             <!-- Mobile Floating Bus Status Pill (Top on Mobile) -->
-            <div class="mobile-map-pill" id="mobile-map-pill" onclick="setMobileView('panel', 'student')" title="বিস্তারিত দেখতে ট্যাপ করুন">
+            <div class="mobile-map-pill" id="mobile-map-pill" onclick="setMobileView('panel', 'student')"
+                title="বিস্তারিত দেখতে ট্যাপ করুন">
                 <div class="pill-left">
                     <div class="pill-icon-wrapper">
                         <span class="pill-bus-icon">🚍</span>
@@ -860,15 +913,21 @@ npx cap open android</pre>
                         <span id="legend-stops-info">7 Stops</span> •
                         <span id="legend-distance-info">~6.5 km total (18 min)</span>
                     </div>
-                    <a id="legend-gmaps-link" href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank" class="legend-gmaps-btn" title="Open verified route in Google Maps">🗺️ Open in Google Maps ↗</a>
+                    <a id="legend-gmaps-link" href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank"
+                        class="legend-gmaps-btn" title="Open verified route in Google Maps">🗺️ Open in Google Maps
+                        ↗</a>
                 </div>
 
                 <div class="overlay-quick-controls">
-                    <button class="map-icon-btn" title="Find My Location (আমার লোকেশন)" onclick="locateStudent()" id="btn-map-my-location">🎯</button>
+                    <button class="map-icon-btn" title="Find My Location (আমার লোকেশন)" onclick="locateStudent()"
+                        id="btn-map-my-location">🎯</button>
                     <button class="map-icon-btn" title="Center Bus (বাসে ফোকাস)" onclick="focusOnBus()">🚍</button>
-                    <button class="map-icon-btn" title="Center University (ববি ক্যাম্পাস)" onclick="focusOnBU()">🏛️</button>
-                    <button class="map-icon-btn" title="Fit Entire Route (পুরো রুট)" onclick="fitRouteBounds()">🗺️</button>
-                    <button class="map-icon-btn" title="Manual GPS Coordinates (ম্যানুয়াল জিপিএস)" onclick="toggleManualGpsCard()" id="btn-toggle-gps">📍</button>
+                    <button class="map-icon-btn" title="Center University (ববি ক্যাম্পাস)"
+                        onclick="focusOnBU()">🏛️</button>
+                    <button class="map-icon-btn" title="Fit Entire Route (পুরো রুট)"
+                        onclick="fitRouteBounds()">🗺️</button>
+                    <button class="map-icon-btn" title="Manual GPS Coordinates (ম্যানুয়াল জিপিএস)"
+                        onclick="toggleManualGpsCard()" id="btn-toggle-gps">📍</button>
                 </div>
             </div>
 
@@ -879,34 +938,45 @@ npx cap open android</pre>
                         <span>📍</span>
                         <b>Manual GPS Locator</b>
                     </div>
-                    <button class="btn-sm btn-ghost" onclick="toggleManualGpsCard()" title="Close / Hide" style="padding:2px 8px; font-weight:700;">✕</button>
+                    <button class="btn-sm btn-ghost" onclick="toggleManualGpsCard()" title="Close / Hide"
+                        style="padding:2px 8px; font-weight:700;">✕</button>
                 </div>
                 <div class="manual-gps-body" id="manual-gps-body">
                     <p class="gps-hint">Enter Lat & Lng manually, click presets, or click anywhere on map:</p>
                     <div class="gps-inputs-row">
                         <div class="input-col">
                             <label>Latitude (অক্ষাংশ)</label>
-                            <input type="number" id="input-manual-lat" step="any" value="22.65987" placeholder="22.65987">
+                            <input type="number" id="input-manual-lat" step="any" value="22.65987"
+                                placeholder="22.65987">
                         </div>
                         <div class="input-col">
                             <label>Longitude (দ্রাঘিমাংশ)</label>
-                            <input type="number" id="input-manual-lng" step="any" value="90.36211" placeholder="90.36211">
+                            <input type="number" id="input-manual-lng" step="any" value="90.36211"
+                                placeholder="90.36211">
                         </div>
                     </div>
-                    
+
                     <div class="gps-actions-row">
-                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="locateCustomCoordinates()">🎯 Show on Map</button>
-                        <button class="btn btn-secondary btn-sm" style="flex:1;" onclick="setManualAsStudentLocation()">🎓 Set as Student Pin</button>
-                        <button class="btn btn-danger-ghost btn-sm" onclick="clearManualPin()" title="Clear Pin">✕</button>
+                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="locateCustomCoordinates()">🎯
+                            Show on Map</button>
+                        <button class="btn btn-secondary btn-sm" style="flex:1;"
+                            onclick="setManualAsStudentLocation()">🎓 Set as Student Pin</button>
+                        <button class="btn btn-danger-ghost btn-sm" onclick="clearManualPin()"
+                            title="Clear Pin">✕</button>
                     </div>
 
                     <div class="quick-presets">
                         <span class="preset-label">Presets:</span>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.65987, 90.36211, 'BU Campus')">BU Campus</button>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.69736, 90.36993, 'Barishal Club')">Club</button>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.71038, 90.36360, 'New Bazar')">New Bazar</button>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.71370, 90.35037, 'Nathullabad')">Nathullabad</button>
-                        <button class="preset-pill" onclick="applyPresetCoords(22.67850, 90.35450, 'Rupatali')">Rupatali</button>
+                        <button class="preset-pill" onclick="applyPresetCoords(22.65987, 90.36211, 'BU Campus')">BU
+                            Campus</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.69736, 90.36993, 'Barishal Club')">Club</button>
+                        <button class="preset-pill" onclick="applyPresetCoords(22.71038, 90.36360, 'New Bazar')">New
+                            Bazar</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.71370, 90.35037, 'Nathullabad')">Nathullabad</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.67850, 90.35450, 'Rupatali')">Rupatali</button>
                     </div>
 
                     <div id="manual-gps-result" class="gps-result-box" style="display:none;"></div>
@@ -934,10 +1004,15 @@ npx cap open android</pre>
             <span class="mob-icon">⚙️</span>
             <span class="mob-label">ম্যানেজার</span>
         </button>
+        <a class="mobile-nav-btn" href="/download-apk" download="bu-smart-bus.apk" style="text-decoration:none;">
+            <span class="mob-icon">📲</span>
+            <span class="mob-label">অ্যাপ APK</span>
+        </a>
     </nav>
 
     <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <!-- Application Modules (with cache busters) -->
     <script src="data.js?v=20261017_4"></script>
@@ -947,4 +1022,5 @@ npx cap open android</pre>
     <script src="admin.js?v=20261017_4"></script>
     <script src="app.js?v=20261017_4"></script>
 </body>
+
 </html>

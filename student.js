@@ -43,7 +43,7 @@ const BU_STUDENT = {
                         if (parsed && parsed.trackingStatus !== 'STOPPED' && !parsed.isStopped && (Date.now() - (parsed.timestamp || 0) < 60000)) {
                             this.onLiveLocationReceived(parsed);
                         }
-                    } catch (e) {}
+                    } catch (e) { }
                 }
             });
         }
@@ -454,7 +454,7 @@ const BU_STUDENT = {
                     if (stopped && stopped.busId) {
                         this.removeBusMarker(stopped.busId);
                     }
-                } catch (err) {}
+                } catch (err) { }
             } else if (e.key === "BU_LATEST_LOCATION_UPDATE" && e.newValue) {
                 try {
                     const loc = JSON.parse(e.newValue);
@@ -465,30 +465,39 @@ const BU_STUDENT = {
                             this.onLiveLocationReceived(loc);
                         }
                     }
-                } catch (err) {}
+                } catch (err) { }
             }
         });
     },
 
     pollServerLocation: function () {
-        fetch('/api/location')
+        fetch(BU_API.url('/api/location'))
             .then(res => res.json())
             .then(data => {
                 if (!data || typeof data !== 'object') return;
 
                 const busesMap = data.busId ? { [data.busId]: data } : data;
+                const activeServerIds = new Set();
 
                 for (const [busId, loc] of Object.entries(busesMap)) {
                     if (loc && loc.lat && loc.lng) {
                         if (loc.trackingStatus === 'STOPPED' || loc.isStopped) {
                             this.removeBusMarker(busId);
                         } else {
+                            activeServerIds.add(busId);
                             this.onLiveLocationReceived(loc);
                         }
                     }
                 }
+
+                // Any bus marker currently on map that is no longer returned as active by server should be erased
+                for (const localBusId in this.busMarkers) {
+                    if (!activeServerIds.has(localBusId)) {
+                        this.removeBusMarker(localBusId);
+                    }
+                }
             })
-            .catch(() => {});
+            .catch(() => { });
     },
 
     initCloudSseStream: function () {
@@ -510,9 +519,9 @@ const BU_STUDENT = {
                             this.onLiveLocationReceived(payload);
                         }
                     }
-                } catch (err) {}
+                } catch (err) { }
             };
-        } catch (e) {}
+        } catch (e) { }
     },
 
     removeBusMarker: function (busId) {
@@ -524,7 +533,7 @@ const BU_STUDENT = {
         delete this.activeBuses[busId];
         try {
             localStorage.removeItem(`BU_LIVE_LOCATION_${busId}`);
-        } catch (e) {}
+        } catch (e) { }
 
         if (this.selectedBusId === busId) {
             this.latestBusLocation = null;
@@ -724,7 +733,7 @@ const BU_STUDENT = {
                 if (mobEta) mobEta.textContent = etaResult.formattedText;
                 if (mobSub) {
                     const spd = this.latestBusLocation.speed || 0;
-                    mobSub.textContent = status.code === "ACTIVE" 
+                    mobSub.textContent = status.code === "ACTIVE"
                         ? `🟢 লাইভ • ${spd} km/h • ${etaResult.roadDistanceKm} km`
                         : `🟡 বিলম্বিত • ${spd} km/h`;
                 }

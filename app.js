@@ -158,3 +158,20 @@ function initNetworkMonitor() {
     window.addEventListener('offline', updateNet);
     updateNet();
 }
+
+// Register Service Worker for PWA & Offline Support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('BU Bus PWA Service Worker Registered:', reg.scope))
+            .catch(err => console.log('Service Worker registration skipped:', err));
+    });
+}
+
+// Mobile PWA Install prompt handler
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('BU Smart Bus is ready to install as Android Web App');
+});

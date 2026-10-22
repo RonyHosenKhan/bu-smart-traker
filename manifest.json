@@ -1,0 +1,18 @@
+{
+  "name": "BU Smart Bus Tracker",
+  "short_name": "BU Bus",
+  "description": "University of Barishal Real-Time Smart Bus Tracking & Live GPS Cockpit",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icons/bus-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

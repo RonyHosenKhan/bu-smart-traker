@@ -1,0 +1,1818 @@
+/* BU Smart Bus Tracker - Design System & Modern UI */
+:root {
+    --primary: #0F4C81;
+    --primary-dark: #092E50;
+    --primary-light: #2563EB;
+    --secondary-teal: #00897B;
+    --accent-amber: #F59E0B;
+    --danger: #EF4444;
+    --success: #10B981;
+
+    --bg-page: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --bg-sidebar: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 10px 25px rgba(15, 23, 42, 0.12);
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+
+    --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-bn: 'Hind Siliguri', 'Outfit', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main);
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header Styles */
+.app-header {
+    height: 64px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-crest {
+    width: 38px;
+    height: 38px;
+    background: white;
+    color: var(--primary);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.brand-titles {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+}
+
+.brand-sub {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-family: var(--font-bn);
+}
+
+/* Role Switcher in Header */
+.role-switcher {
+    display: flex;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-full);
+    padding: 4px;
+    gap: 4px;
+}
+
+.role-btn {
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.role-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.role-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+.live-pill {
+    background: var(--danger);
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+    animation: pulseGlow 1.5s infinite;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.system-time {
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.network-badge {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-full);
+}
+
+.network-badge.online .dot {
+    width: 8px;
+    height: 8px;
+    background: #34D399;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #34D399;
+}
+
+/* Main Layout */
+.main-container {
+    flex: 1;
+    display: flex;
+    height: calc(100vh - 64px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar-panel {
+    width: 440px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    z-index: 500;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.04);
+}
+
+.role-panel {
+    display: none;
+    padding: 20px;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.role-panel.active {
+    display: flex;
+}
+
+.panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.subtext {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Form Controls */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.custom-select, .custom-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    font-family: var(--font-bn);
+}
+
+.custom-select:focus, .custom-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.12);
+}
+
+/* Cards & Components */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-card {
+    background: linear-gradient(135deg, #F0F7FF 0%, #FFFFFF 100%);
+    border-left: 4px solid var(--primary);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+}
+
+.status-stale {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FCD34D;
+}
+
+.status-offline {
+    background: #FEE2E2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+}
+
+.last-seen-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
+
+.bus-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: var(--font-bn);
+}
+
+.bus-driver-name {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.telemetry-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.tele-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.tele-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.tele-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ETA Card */
+.eta-card {
+    background: linear-gradient(135deg, #FAF5FF 0%, #FFFFFF 100%);
+    border-left: 4px solid #8B5CF6;
+}
+
+.eta-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.eta-icon {
+    font-size: 1.8rem;
+}
+
+.eta-label {
+    font-size: 0.75rem;
+    color: #6B21A8;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.eta-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #4C1D95;
+}
+
+.eta-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.82rem;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #EDE9FE;
+}
+
+.eta-stat {
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat-val.highlight {
+    font-weight: 700;
+    color: var(--primary-light);
+}
+
+.eta-disclaimer {
+    display: flex;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+/* Buttons */
+.btn {
+    border: none;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+.btn-danger:hover {
+    background: #DC2626;
+}
+
+.btn-secondary {
+    background: var(--secondary-teal);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+}
+.btn-outline:hover {
+    background: rgba(15, 76, 129, 0.05);
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-lg {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.location-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Stops Timeline */
+.stops-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.stop-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: #F8FAFC;
+    border: 1px solid var(--border-color);
+    transition: background 0.15s ease;
+}
+
+.stop-item:hover {
+    background: #EDF2F7;
+}
+
+.stop-item.active-target {
+    background: #EFF6FF;
+    border-color: var(--primary-light);
+}
+
+.stop-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stop-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.stop-name-bn {
+    font-family: var(--font-bn);
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+}
+
+.stop-name-en {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.coord-status-pill {
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    margin-top: 4px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.coord-status-pill.verified {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.coord-status-pill.unverified {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+/* Driver Panel Specifics */
+.driver-ctrl-card {
+    border-top: 4px solid var(--primary);
+}
+
+.trip-status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.sim-toggle-box {
+    background: #F1F5F9;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.switch-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.sim-speed-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 8px;
+}
+
+.sim-speed-box input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary);
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
+.tele-box {
+    background: #F8FAFC;
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.tele-box .label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    display: block;
+}
+
+.tele-box .value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.driver-latlng-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Alerts */
+.alert {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.alert-info {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1E40AF;
+}
+
+.alert-warning {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #92400E;
+}
+
+/* Map Viewport Area */
+.map-viewport-container {
+    flex: 1;
+    position: relative;
+    height: 100%;
+}
+
+.map-container {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Map Floating Overlays */
+.map-floating-overlay {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.overlay-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.legend-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.legend-stats {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.legend-gmaps-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0B57D0;
+    text-decoration: none;
+    background: rgba(11, 87, 208, 0.08);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease;
+    margin-top: 4px;
+}
+
+.legend-gmaps-btn:hover {
+    background: rgba(11, 87, 208, 0.16);
+    text-decoration: underline;
+}
+
+.overlay-quick-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.map-icon-btn {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    box-shadow: var(--shadow-md);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s ease;
+}
+
+.map-icon-btn:hover {
+    transform: scale(1.08);
+}
+
+/* Custom Leaflet Markers */
+.bus-marker-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 3px solid white;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.3rem;
+    position: relative;
+    overflow: visible !important;
+    transition: transform 0.3s ease;
+}
+
+.bus-badge-label {
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+    border: 1.5px solid white;
+    pointer-events: none;
+    line-height: 1.3;
+    z-index: 10;
+}
+
+.bus-pulse-ring {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(15, 76, 129, 0.25);
+    animation: radarPulse 2s infinite ease-out;
+    pointer-events: none;
+}
+
+.student-marker-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #2563EB;
+    border: 2px solid white;
+    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.stop-marker-icon {
+    background: white;
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.stop-marker-icon.dest-pin {
+    background: #EA4335 !important;
+    border-color: #B31412 !important;
+    color: white !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 3px 10px rgba(234, 67, 53, 0.6) !important;
+}
+
+.stop-marker-icon.start-pin {
+    background: #1A73E8 !important;
+    border-color: #0D47A1 !important;
+    color: white !important;
+    box-shadow: 0 3px 10px rgba(26, 115, 232, 0.6) !important;
+}
+
+/* Animations */
+@keyframes radarPulse {
+    0% { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* Documentation Formatting */
+.docs-content {
+    line-height: 1.6;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}
+
+.docs-list {
+    margin-left: 20px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+}
+
+.math-box {
+    background: #F1F5F9;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-family: var(--font-mono);
+    border-left: 3px solid var(--secondary-teal);
+    margin: 12px 0;
+}
+
+.code-snippet {
+    background: #0F172A;
+    color: #38BDF8;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    overflow-x: auto;
+}
+
+/* Manual GPS Locator Card */
+.manual-gps-card {
+    position: absolute;
+    bottom: 24px;
+    left: 20px;
+    z-index: 1000;
+    width: 320px;
+    max-width: calc(100vw - 40px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.manual-gps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.manual-gps-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.manual-gps-body {
+    padding: 12px 14px;
+}
+
+.gps-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.gps-inputs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.gps-inputs-row .input-col label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 3px;
+}
+
+.gps-inputs-row .input-col input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-family: var(--font-mono);
+    outline: none;
+    transition: border 0.2s;
+}
+
+.gps-inputs-row .input-col input:focus {
+    border-color: var(--primary);
+}
+
+.gps-actions-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.btn-sm {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-danger-ghost {
+    background: transparent;
+    border: 1px solid #FECACA;
+    color: #DC2626;
+}
+
+.btn-danger-ghost:hover {
+    background: #FEF2F2;
+}
+
+.quick-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.preset-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+.preset-pill {
+    background: #F1F5F9;
+    color: var(--primary);
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 2px 7px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.preset-pill:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.gps-result-box {
+    margin-top: 8px;
+    padding: 8px;
+    background: #EFF6FF;
+    border-left: 3px solid var(--primary-light);
+    border-radius: var(--radius-sm);
+    font-size: 0.76rem;
+    color: var(--primary-dark);
+}
+
+/* Custom Manual Location Pin */
+.manual-pin-div {
+    position: relative;
+}
+
+.manual-pin-pulse {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    background: rgba(245, 158, 11, 0.4);
+    border-radius: 50%;
+    animation: radarPulse 1.8s infinite ease-out;
+}
+
+.manual-pin-icon {
+    position: relative;
+    font-size: 24px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    cursor: pointer;
+}
+
+/* Schedule Table Styling */
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 8px;
+}
+
+.schedule-table th, .schedule-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.schedule-table th {
+    background: #F8FAFC;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.schedule-table tr:hover {
+    background: #F1F5F9;
+}
+
+/* Driver Mode Selection Tabs */
+.driver-mode-selection {
+    margin-top: 14px;
+    margin-bottom: 12px;
+}
+
+.mode-selection-title {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.mode-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.mode-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #F8FAFC;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.mode-tab:hover {
+    border-color: var(--primary);
+    background: #F0F7FF;
+}
+
+.mode-tab.active {
+    border-color: var(--primary);
+    background: #EFF6FF;
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
+.mode-tab .tab-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mode-tab .tab-text b {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.mode-tab.active .tab-text b {
+    color: var(--primary);
+}
+
+.mode-tab .tab-text small {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Mobile Connection Card */
+.mobile-connect-card {
+    margin-top: 14px;
+    background: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+}
+
+.mobile-connect-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #166534;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.mobile-url-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #FFFFFF;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #DCFCE7;
+}
+
+.mobile-url-row code {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: #15803D;
+    font-weight: 600;
+    overflow-x: auto;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE & ENHANCED UI DESIGN SYSTEM
+   University of Barishal Bus Tracker
+   ========================================================================== */
+
+/* Utility Visibility Classes */
+.show-mobile {
+    display: none;
+}
+
+.hide-mobile {
+    display: inline;
+}
+
+/* Mobile Floating Live Bus Pill (Map Overlay) */
+.mobile-map-pill {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.15);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-map-pill:active {
+    transform: scale(0.98);
+}
+
+.mobile-map-pill .pill-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.mobile-map-pill .pill-icon-wrapper {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, #0F4C81 0%, #1E3A8A 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(15, 76, 129, 0.3);
+}
+
+.mobile-map-pill .pill-status-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.mobile-map-pill .pill-status-dot.active {
+    background: #10B981;
+    box-shadow: 0 0 6px #10B981;
+    animation: pulseGlow 1.4s infinite;
+}
+
+.mobile-map-pill .pill-status-dot.stale {
+    background: #F59E0B;
+}
+
+.mobile-map-pill .pill-status-dot.offline {
+    background: #EF4444;
+}
+
+.mobile-map-pill .pill-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.mobile-map-pill .pill-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.mobile-map-pill .pill-sub {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+    font-family: var(--font-bn);
+}
+
+.mobile-map-pill .pill-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-left: 8px;
+}
+
+.mobile-map-pill .pill-eta-box {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    padding: 3px 8px;
+    border-radius: 8px;
+    text-align: right;
+}
+
+.mobile-map-pill .pill-eta-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--primary-light);
+    display: block;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.mobile-map-pill .pill-eta-val {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: block;
+    line-height: 1.2;
+}
+
+.mobile-map-pill .pill-arrow {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+/* Mobile Panel Bar (Top of panels when opened on phone) */
+.mobile-panel-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.btn-back-map {
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: var(--primary-light);
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+}
+
+.btn-back-map:hover {
+    background: #DBEAFE;
+}
+
+.mobile-bar-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+    z-index: 2000;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-nav-btn {
+    border: none;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.15s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-btn .mob-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-nav-btn .mob-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-family: var(--font-bn);
+    line-height: 1;
+    color: inherit;
+}
+
+.mobile-nav-btn.active {
+    color: var(--primary);
+}
+
+.mobile-nav-btn.active .mob-icon {
+    transform: scale(1.18) translateY(-2px);
+}
+
+.mobile-nav-btn.active .mob-label {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.mobile-nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 20px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: var(--radius-full);
+}
+
+.mob-live-badge {
+    position: absolute;
+    top: 6px;
+    right: 18%;
+    background: var(--danger);
+    color: white;
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: var(--radius-full);
+    animation: pulseGlow 1.4s infinite;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* 1. Large Screens & Desktops (>= 992px) */
+@media (min-width: 992px) {
+    .show-mobile {
+        display: none !important;
+    }
+
+    .hide-mobile {
+        display: inline !important;
+    }
+
+    .mobile-bottom-nav {
+        display: none !important;
+    }
+
+    .mobile-map-pill {
+        display: none !important;
+    }
+
+    .sidebar-panel {
+        display: flex !important;
+        width: 440px !important;
+    }
+
+    .map-viewport-container {
+        display: block !important;
+        flex: 1 !important;
+    }
+}
+
+/* 2. Mobile & Tablets (< 992px) */
+@media (max-width: 991px) {
+    body {
+        height: 100dvh;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .show-mobile {
+        display: flex !important;
+    }
+
+    .hide-mobile {
+        display: none !important;
+    }
+
+    /* Header Compact Mode */
+    .app-header {
+        height: 54px;
+        padding: 0 12px;
+    }
+
+    .brand-crest {
+        width: 32px;
+        height: 32px;
+    }
+
+    .brand-crest svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .brand-name {
+        font-size: 1rem;
+    }
+
+    .brand-sub {
+        font-size: 0.7rem;
+    }
+
+    /* Hide desktop role switcher in header on mobile - bottom nav takes over */
+    .role-switcher {
+        display: none !important;
+    }
+
+    .header-status {
+        gap: 8px;
+    }
+
+    .system-time {
+        font-size: 0.78rem;
+    }
+
+    .network-badge {
+        padding: 3px 8px;
+        font-size: 0.7rem;
+    }
+
+    /* Main Container Height (Minus Header & Bottom Nav) */
+    .main-container {
+        height: calc(100dvh - 54px - 62px);
+        height: calc(100vh - 54px - 62px);
+        flex-direction: column;
+    }
+
+    /* Mobile Bottom Nav visible */
+    .mobile-bottom-nav {
+        display: flex !important;
+    }
+
+    /* Mobile View Toggle states */
+    /* View State 1: Map View (Default on phone) */
+    body.mobile-show-map .sidebar-panel {
+        display: none !important;
+    }
+
+    body.mobile-show-map .map-viewport-container {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+        flex: 1 !important;
+    }
+
+    /* View State 2: Panel View (When tab clicked) */
+    body.mobile-show-panel .map-viewport-container {
+        display: none !important;
+    }
+
+    body.mobile-show-panel .sidebar-panel {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        border-right: none !important;
+        box-shadow: none !important;
+        padding-bottom: 24px;
+    }
+
+    .role-panel {
+        padding: 14px 12px 32px 12px;
+        gap: 14px;
+    }
+
+    /* Mobile Map Pill visible on Map */
+    .mobile-map-pill {
+        display: flex !important;
+    }
+
+    /* Map Overlays on Mobile */
+    .map-floating-overlay {
+        top: 72px;
+        right: 10px;
+        gap: 8px;
+    }
+
+    .route-legend {
+        padding: 8px 10px;
+        max-width: 175px;
+        border-radius: var(--radius-sm);
+    }
+
+    .legend-header {
+        font-size: 0.8rem;
+    }
+
+    .legend-stats {
+        font-size: 0.7rem;
+    }
+
+    .legend-gmaps-btn {
+        font-size: 0.68rem;
+        padding: 2px 6px;
+    }
+
+    .overlay-quick-controls {
+        gap: 6px;
+    }
+
+    .map-icon-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Manual GPS Card on Mobile as Bottom Sheet */
+    .manual-gps-card {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-width: calc(100% - 20px);
+        max-height: 80vh;
+        overflow-y: auto;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .gps-inputs-row {
+        gap: 6px;
+    }
+
+    .quick-presets {
+        gap: 6px;
+    }
+
+    .preset-pill {
+        padding: 3px 9px;
+        font-size: 0.72rem;
+    }
+
+    /* Touch Controls in Forms & Cards */
+    .btn {
+        min-height: 44px;
+        padding: 10px 14px;
+    }
+
+    .custom-select, .custom-input {
+        min-height: 44px;
+        font-size: 0.95rem;
+    }
+
+    .telemetry-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+    }
+
+    .action-buttons-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .location-btn-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .stops-timeline {
+        max-height: 260px;
+    }
+
+    .mode-tabs {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .mobile-connect-card {
+        padding: 10px 12px;
+    }
+
+    .mobile-url-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    .mobile-url-row code {
+        word-break: break-all;
+        white-space: normal;
+        font-size: 0.78rem;
+    }
+
+    .mobile-url-row button {
+        width: 100%;
+        min-height: 38px;
+    }
+}
+
+/* 3. Small Mobile Phones (< 480px) */
+@media (max-width: 480px) {
+    .brand-name {
+        font-size: 0.95rem;
+    }
+
+    .brand-suffix {
+        display: none;
+    }
+
+    .system-time {
+        display: none;
+    }
+
+    .mobile-map-pill {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        padding: 8px 10px;
+    }
+
+    .mobile-map-pill .pill-name {
+        font-size: 0.85rem;
+    }
+
+    .mobile-map-pill .pill-sub {
+        font-size: 0.68rem;
+    }
+
+    .mobile-map-pill .pill-eta-val {
+        font-size: 0.8rem;
+    }
+
+    .map-floating-overlay {
+        top: 66px;
+        right: 8px;
+    }
+
+    .route-legend {
+        max-width: 155px;
+    }
+}
+
+/* Android APK Download Elements */
+.btn-apk-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+    color: white !important;
+    text-decoration: none;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-apk-header:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+    color: white;
+}
+
+.apk-promo-card {
+    background: linear-gradient(135deg, rgba(15, 76, 129, 0.08) 0%, rgba(30, 58, 138, 0.12) 100%);
+    border: 1.5px dashed #2563EB;
+    border-radius: 14px;
+    padding: 14px;
+    margin: 14px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.apk-promo-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.apk-promo-text {
+    flex: 1;
+}
+
+.apk-promo-text h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    color: #1E3A8A;
+    font-weight: 700;
+}
+
+.apk-promo-text p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #475569;
+    line-height: 1.3;
+}
+
+

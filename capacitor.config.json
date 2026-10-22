@@ -1,0 +1,9 @@
+{
+  "appId": "com.bu.smartbus",
+  "appName": "BU Smart Bus",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "bu-smart-bus-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "admin.js",
+  "scripts": {
+    "build": "node sync-assets.js",
+    "sync": "node sync-assets.js && npx cap sync android",
+    "open": "npx cap open android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RonyHosenKhan/bu-smart-traker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RonyHosenKhan/bu-smart-traker/issues"
+  },
+  "homepage": "https://github.com/RonyHosenKhan/bu-smart-traker#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/geolocation": "^8.2.4"
+  }
+}

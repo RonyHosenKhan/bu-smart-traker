@@ -115,6 +115,30 @@ class BUSmartBusHandler(http.server.SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps(info).encode('utf-8'))
             return
 
+        # 3. Download Android APK endpoint
+        if parsed.path in ('/download-apk', '/bu-smart-bus.apk', '/download'):
+            apk_candidates = [
+                os.path.join(DIRECTORY, "bu-smart-bus.apk"),
+                os.path.join(DIRECTORY, "android", "app", "build", "outputs", "apk", "debug", "app-debug.apk"),
+                os.path.join(DIRECTORY, "downloads", "bu-smart-bus.apk")
+            ]
+            for apk_path in apk_candidates:
+                if os.path.exists(apk_path):
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/vnd.android.package-archive')
+                    self.send_header('Content-Disposition', 'attachment; filename="bu-smart-bus.apk"')
+                    self.send_header('Content-Length', str(os.path.getsize(apk_path)))
+                    self.end_headers()
+                    with open(apk_path, 'rb') as f:
+                        self.wfile.write(f.read())
+                    return
+
+            # If not yet compiled locally, redirect to GitHub Actions release
+            self.send_response(302)
+            self.send_header('Location', 'https://github.com/RonyHosenKhan/bu-smart-traker/releases/latest/download/app-debug.apk')
+            self.end_headers()
+            return
+
         # Fallback to standard static file server
         super().do_GET()
 

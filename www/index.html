@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BU Smart Bus Tracker — University of Barishal</title>
+    <meta name="description"
+        content="Real-time University of Barishal bus tracking system with live GPS, route stops, ETA calculation, and driver-student synchronisation.">
+
+    <!-- Google Fonts: Outfit & Bengali Font (Hind Siliguri) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Custom CSS with cache-busting version -->
+    <link rel="stylesheet" href="style.css?v=20261018_rev9">
+
+    <!-- PWA & Android Meta -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="icon" type="image/svg+xml" href="icons/bus-icon.svg">
+    <link rel="apple-touch-icon" href="icons/bus-icon.svg">
+
+    <!-- Critical Inlined Mobile Responsive Engine (Overrides caching) -->
+    <style>
+        /* Mobile Visibility Utilities */
+        .show-mobile {
+            display: none !important;
+        }
+
+        .hide-mobile {
+            display: inline !important;
+        }
+
+        @media (max-width: 991px) {
+
+            html,
+            body {
+                height: 100% !important;
+                height: 100dvh !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .show-mobile {
+                display: flex !important;
+            }
+
+            .hide-mobile {
+                display: none !important;
+            }
+
+            /* Header Compact Mode */
+            .app-header {
+                height: 52px !important;
+                padding: 0 12px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+            }
+
+            .role-switcher {
+                display: none !important;
+            }
+
+            .brand-crest {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            .brand-name {
+                font-size: 0.95rem !important;
+            }
+
+            .brand-suffix {
+                display: none !important;
+            }
+
+            .system-time {
+                display: none !important;
+            }
+
+            /* Main Layout */
+            .main-container {
+                display: flex !important;
+                flex-direction: column !important;
+                height: calc(100dvh - 52px - 62px) !important;
+                height: calc(100vh - 52px - 62px) !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+
+            /* Default on Mobile: Map Fullscreen, Sidebar Hidden */
+            .sidebar-panel {
+                display: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100% !important;
+                border-right: none !important;
+                box-shadow: none !important;
+                overflow-y: auto !important;
+                padding-bottom: 24px !important;
+            }
+
+            .map-viewport-container {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                flex: 1 !important;
+                position: relative !important;
+            }
+
+            /* When mobile panel view is active (Bus & Stops / Driver) */
+            body.mobile-show-panel .sidebar-panel {
+                display: flex !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100% !important;
+            }
+
+            body.mobile-show-panel .map-viewport-container {
+                display: none !important;
+            }
+
+            /* When mobile map view is active */
+            body.mobile-show-map .sidebar-panel {
+                display: none !important;
+            }
+
+            body.mobile-show-map .map-viewport-container {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+
+            /* Mobile Top Floating Pill */
+            .mobile-map-pill {
+                display: flex !important;
+                position: absolute !important;
+                top: 10px !important;
+                left: 10px !important;
+                right: 10px !important;
+                z-index: 1000 !important;
+                background: rgba(255, 255, 255, 0.96) !important;
+                backdrop-filter: blur(14px) !important;
+                -webkit-backdrop-filter: blur(14px) !important;
+                border: 1px solid rgba(226, 232, 240, 0.9) !important;
+                border-radius: 14px !important;
+                box-shadow: 0 4px 18px rgba(15, 23, 42, 0.15) !important;
+                padding: 9px 12px !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                cursor: pointer !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+
+            .mobile-map-pill .pill-left {
+                display: flex !important;
+                align-items: center !important;
+                gap: 10px !important;
+                min-width: 0 !important;
+                flex: 1 !important;
+            }
+
+            .mobile-map-pill .pill-icon-wrapper {
+                position: relative !important;
+                width: 36px !important;
+                height: 36px !important;
+                background: linear-gradient(135deg, #0F4C81 0%, #1E3A8A 100%) !important;
+                border-radius: 10px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                color: white !important;
+                font-size: 1.15rem !important;
+                flex-shrink: 0 !important;
+            }
+
+            .mobile-map-pill .pill-status-dot {
+                position: absolute !important;
+                top: -2px !important;
+                right: -2px !important;
+                width: 10px !important;
+                height: 10px !important;
+                border-radius: 50% !important;
+                border: 2px solid white !important;
+            }
+
+            .mobile-map-pill .pill-status-dot.active {
+                background: #10B981 !important;
+            }
+
+            .mobile-map-pill .pill-status-dot.stale {
+                background: #F59E0B !important;
+            }
+
+            .mobile-map-pill .pill-status-dot.offline {
+                background: #EF4444 !important;
+            }
+
+            .mobile-map-pill .pill-info {
+                display: flex !important;
+                flex-direction: column !important;
+                min-width: 0 !important;
+            }
+
+            .mobile-map-pill .pill-name {
+                font-size: 0.9rem !important;
+                font-weight: 700 !important;
+                color: #0F172A !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                line-height: 1.2 !important;
+            }
+
+            .mobile-map-pill .pill-sub {
+                font-size: 0.72rem !important;
+                color: #64748B !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                margin-top: 2px !important;
+                font-family: 'Hind Siliguri', sans-serif !important;
+            }
+
+            .mobile-map-pill .pill-right {
+                display: flex !important;
+                align-items: center !important;
+                gap: 6px !important;
+                flex-shrink: 0 !important;
+                padding-left: 6px !important;
+            }
+
+            .mobile-map-pill .pill-eta-box {
+                background: #EFF6FF !important;
+                border: 1px solid #BFDBFE !important;
+                padding: 3px 8px !important;
+                border-radius: 8px !important;
+                text-align: right !important;
+            }
+
+            .mobile-map-pill .pill-eta-label {
+                font-size: 0.6rem !important;
+                font-weight: 700 !important;
+                color: #2563EB !important;
+                display: block !important;
+                line-height: 1 !important;
+            }
+
+            .mobile-map-pill .pill-eta-val {
+                font-size: 0.82rem !important;
+                font-weight: 700 !important;
+                color: #092E50 !important;
+                display: block !important;
+                line-height: 1.2 !important;
+            }
+
+            .mobile-map-pill .pill-arrow {
+                font-size: 1.1rem !important;
+                color: #94A3B8 !important;
+                font-weight: 700 !important;
+            }
+
+            /* Mobile Panel Bar */
+            .mobile-panel-bar {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding-bottom: 12px !important;
+                margin-bottom: 8px !important;
+                border-bottom: 1px solid #E2E8F0 !important;
+            }
+
+            .btn-back-map {
+                background: #EFF6FF !important;
+                border: 1px solid #BFDBFE !important;
+                color: #2563EB !important;
+                font-weight: 600 !important;
+                padding: 6px 12px !important;
+                border-radius: 999px !important;
+            }
+
+            /* Mobile Bottom Navigation Bar */
+            .mobile-bottom-nav {
+                display: flex !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                height: 62px !important;
+                background: rgba(255, 255, 255, 0.98) !important;
+                backdrop-filter: blur(16px) !important;
+                -webkit-backdrop-filter: blur(16px) !important;
+                border-top: 1.5px solid #E2E8F0 !important;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+                z-index: 9999 !important;
+                justify-content: space-around !important;
+                align-items: center !important;
+                padding: 0 4px !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            }
+
+            .mobile-nav-btn {
+                border: none !important;
+                background: transparent !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 3px !important;
+                flex: 1 !important;
+                height: 100% !important;
+                color: #64748B !important;
+                cursor: pointer !important;
+                position: relative !important;
+                padding: 6px 0 !important;
+                -webkit-tap-highlight-color: transparent !important;
+                font-family: inherit !important;
+            }
+
+            .mobile-nav-btn .mob-icon {
+                font-size: 1.3rem !important;
+                line-height: 1 !important;
+            }
+
+            .mobile-nav-btn .mob-label {
+                font-size: 0.72rem !important;
+                font-weight: 600 !important;
+                font-family: 'Hind Siliguri', sans-serif !important;
+                line-height: 1 !important;
+                color: inherit !important;
+            }
+
+            .mobile-nav-btn.active {
+                color: #0F4C81 !important;
+            }
+
+            .mobile-nav-btn.active .mob-label {
+                font-weight: 700 !important;
+                color: #0F4C81 !important;
+            }
+
+            .mobile-nav-btn.active::after {
+                content: '' !important;
+                position: absolute !important;
+                bottom: 3px !important;
+                width: 22px !important;
+                height: 3px !important;
+                background: #0F4C81 !important;
+                border-radius: 999px !important;
+            }
+
+            .mob-live-badge {
+                position: absolute !important;
+                top: 6px !important;
+                right: 18% !important;
+                background: #EF4444 !important;
+                color: white !important;
+                font-size: 0.58rem !important;
+                font-weight: 800 !important;
+                padding: 1px 5px !important;
+                border-radius: 999px !important;
+            }
+
+            /* Map Overlays */
+            .map-floating-overlay {
+                top: 68px !important;
+                right: 8px !important;
+                gap: 6px !important;
+            }
+
+            .route-legend {
+                padding: 6px 10px !important;
+                max-width: 160px !important;
+                font-size: 0.75rem !important;
+            }
+
+            .overlay-quick-controls {
+                gap: 6px !important;
+            }
+
+            .map-icon-btn {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1.15rem !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+            }
+
+            /* Manual GPS bottom sheet */
+            .manual-gps-card {
+                bottom: 10px !important;
+                left: 8px !important;
+                right: 8px !important;
+                width: auto !important;
+                max-width: calc(100% - 16px) !important;
+                z-index: 1050 !important;
+                border-radius: 16px !important;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+            }
+
+            /* Responsive grids */
+            .telemetry-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+
+            .action-buttons-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .location-btn-row {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 8px !important;
+            }
+
+            .btn {
+                min-height: 46px !important;
+                font-size: 0.92rem !important;
+            }
+
+            .custom-select,
+            .custom-input {
+                min-height: 44px !important;
+                font-size: 0.95rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="mobile-show-map">
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-crest">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+                    <circle cx="7" cy="18" r="2"></circle>
+                    <circle cx="17" cy="18" r="2"></circle>
+                    <path d="M3 11h18M7 6v5M17 6v5"></path>
+                </svg>
+            </div>
+            <div class="brand-titles">
+                <h1 class="brand-name">BU Smart Bus <span class="brand-suffix">Tracker</span></h1>
+                <span class="brand-sub">Univ of Barishal • <span class="hide-mobile">বরিশাল বিশ্ববিদ্যালয়
+                        (কীর্তনখোলা)</span><span class="show-mobile">ববি কীর্তনখোলা</span></span>
+            </div>
+        </div>
+
+        <!-- Role Navigation Switcher -->
+        <nav class="role-switcher">
+            <button class="role-btn active" id="btn-role-student" onclick="switchRole('student')">
+                <span class="icon">🎓</span>
+                <span class="label">Student View</span>
+            </button>
+            <button class="role-btn" id="btn-role-driver" onclick="switchRole('driver')">
+                <span class="icon">🚍</span>
+                <span class="label">Driver Cockpit</span>
+                <span class="live-pill" id="driver-live-indicator" style="display: none;">LIVE</span>
+            </button>
+            <button class="role-btn" id="btn-role-admin" onclick="switchRole('admin')">
+                <span class="icon">⚙️</span>
+                <span class="label">Admin & Stops</span>
+            </button>
+            <button class="role-btn" id="btn-role-docs" onclick="switchRole('docs')">
+                <span class="icon">📄</span>
+                <span class="label">System Docs</span>
+            </button>
+        </nav>
+
+        <div class="header-status">
+            <a href="/download-apk" class="btn-apk-header" title="Download Android APK" download="bu-smart-bus.apk">
+                <span>📱</span>
+                <span>App <span class="hide-mobile">APK</span></span>
+            </a>
+            <div class="system-time" id="header-time">11:30 AM</div>
+            <div class="network-badge online" id="connection-status">
+                <span class="dot"></span> Online
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="main-container">
+        <!-- Sidebar Panel -->
+        <aside class="sidebar-panel" id="sidebar-panel">
+
+            <!-- 1. STUDENT VIEW PANEL -->
+            <section id="panel-student" class="role-panel active">
+                <div class="mobile-panel-bar show-mobile">
+                    <button class="btn btn-sm btn-ghost btn-back-map" onclick="setMobileView('map')">
+                        ← 🗺️ লাইভ ম্যাপ দেখুন (View Map)
+                    </button>
+                    <span class="mobile-bar-title">🎓 Student Info</span>
+                </div>
+
+                <div class="panel-section">
+                    <!-- Android App Download Card -->
+                    <div class="apk-promo-card">
+                        <div class="apk-promo-icon">📱</div>
+                        <div class="apk-promo-text">
+                            <h4>BU Smart Bus Android App</h4>
+                            <p>মোবাইলে সরাসরি ইনস্টল করুন। লাইভ জিপিএস ও ব্যাকগ্রাউন্ড ট্র্যাকিং সহ।</p>
+                        </div>
+                        <a href="/download-apk" class="btn btn-primary btn-sm" download="bu-smart-bus.apk" style="white-space:nowrap; padding:6px 10px;">
+                            ⬇️ APK
+                        </a>
+                    </div>
+
+                    <h2 class="section-title">Select Route & Bus</h2>
+
+                    <div class="form-group">
+                        <label for="student-route-select">Route (রুট):</label>
+                        <select id="student-route-select" class="custom-select" onchange="onStudentRouteChange()">
+                            <!-- Populated dynamically from data.js -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="student-bus-select">Bus (বাস):</label>
+                        <select id="student-bus-select" class="custom-select" onchange="onStudentBusChange()">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Live Bus Status Card -->
+                <div class="card status-card">
+                    <div class="card-header">
+                        <span class="card-tag" id="bus-status-badge">Checking...</span>
+                        <span class="last-seen-text" id="bus-last-seen">No signal</span>
+                    </div>
+                    <div class="bus-main-info">
+                        <h3 class="bus-title" id="card-bus-name">Dhanshiri (ধানসিঁড়ি)</h3>
+                        <p class="bus-driver-name" id="card-driver-name">Driver: Md. Rafiqul Islam</p>
+                    </div>
+                    <div class="telemetry-mini-grid">
+                        <div class="tele-item">
+                            <span class="tele-label">Speed</span>
+                            <span class="tele-val" id="card-bus-speed">0 km/h</span>
+                        </div>
+                        <div class="tele-item">
+                            <span class="tele-label">GPS Accuracy</span>
+                            <span class="tele-val" id="card-bus-accuracy">± 0 m</span>
+                        </div>
+                        <div class="tele-item">
+                            <span class="tele-label">Current Heading</span>
+                            <span class="tele-val" id="card-bus-heading">--°</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETA & Distance Card -->
+                <div class="card eta-card">
+                    <div class="eta-header">
+                        <span class="eta-icon">⏱️</span>
+                        <div>
+                            <span class="eta-label">Estimated Arrival (ETA)</span>
+                            <h3 class="eta-value" id="eta-display-text">Calculating...</h3>
+                        </div>
+                    </div>
+                    <div class="eta-breakdown">
+                        <div class="eta-stat">
+                            <span class="stat-name">Est. Road Distance:</span>
+                            <span class="stat-val highlight" id="eta-road-dist">-- km</span>
+                        </div>
+                        <div class="eta-stat">
+                            <span class="stat-name">Straight-Line (Haversine):</span>
+                            <span class="stat-val" id="eta-straight-dist">-- km</span>
+                        </div>
+                        <div class="eta-stat">
+                            <span class="stat-name">Target Destination:</span>
+                            <span class="stat-val" id="eta-target-name">Your Location / Stop</span>
+                        </div>
+                    </div>
+                    <div class="eta-disclaimer">
+                        <span class="info-icon">ℹ️</span>
+                        <span>Estimated using road factor (1.28x) & urban traffic dwell time. Not guaranteed.</span>
+                    </div>
+                </div>
+
+                <!-- Student Location Controls -->
+                <div class="panel-section">
+                    <div class="location-btn-row">
+                        <button class="btn btn-outline" id="btn-get-student-location" onclick="locateStudent()">
+                            📍 Find My Location
+                        </button>
+                        <button class="btn btn-ghost" id="btn-focus-bus" onclick="focusOnBus()">
+                            🎯 Center Bus
+                        </button>
+                    </div>
+                    <div id="student-loc-status" class="subtext">Click above or drag the blue marker to test ETA.</div>
+                </div>
+
+                <!-- Ordered Stops Accordion -->
+                <div class="panel-section flex-grow">
+                    <div class="stops-header">
+                        <h3 class="section-title">Route Stops (<span id="stops-count">0</span>)</h3>
+                        <span class="subtext">Ordered sequence to BU</span>
+                    </div>
+                    <div class="stops-timeline" id="stops-timeline-list">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Bus Departure Schedule (From Official Notice) -->
+                <div class="card schedule-card">
+                    <h3 class="card-heading" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>🕒 Bus Schedule (সময়সূচী)</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">Notice
+                            Board</span>
+                    </h3>
+                    <div id="schedule-container" style="max-height: 180px; overflow-y: auto;">
+                        <!-- Populated dynamically based on route -->
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- 2. DRIVER COCKPIT PANEL -->
+            <section id="panel-driver" class="role-panel">
+                <div class="mobile-panel-bar show-mobile">
+                    <button class="btn btn-sm btn-ghost btn-back-map" onclick="setMobileView('map')">
+                        ← 🗺️ লাইভ ম্যাপ দেখুন (View Map)
+                    </button>
+                    <span class="mobile-bar-title">🚍 Driver Cockpit</span>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title">🚍 Driver Trip Control</h2>
+                    <p class="subtext">Authorized driver controls for University bus GPS broadcasting.</p>
+
+                    <div class="form-group">
+                        <label for="driver-bus-select">Assigned Bus:</label>
+                        <select id="driver-bus-select" class="custom-select" onchange="onDriverBusSelect()">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="driver-route-select">Assigned Route:</label>
+                        <select id="driver-route-select" class="custom-select" disabled>
+                            <!-- Auto-syncs with bus assignment -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Driver Live Controller Box -->
+                <div class="card driver-ctrl-card">
+                    <div class="trip-status-row">
+                        <span>Trip Status:</span>
+                        <span class="badge" id="driver-trip-badge">IDLE / STOPPED</span>
+                    </div>
+
+                    <div class="action-buttons-grid">
+                        <button class="btn btn-primary btn-lg" id="btn-start-trip" onclick="startDriverTrip()">
+                            ▶️ Start Trip & Broadcast GPS
+                        </button>
+                        <button class="btn btn-danger btn-lg" id="btn-stop-trip" onclick="stopDriverTrip()" disabled>
+                            ⏹️ Stop Trip
+                        </button>
+                    </div>
+
+                    <!-- Mode Selection: Real Device GPS vs Virtual Simulator -->
+                    <div class="driver-mode-selection">
+                        <label class="mode-selection-title">Select GPS Source (জিপিএস সোর্স):</label>
+                        <div class="mode-tabs">
+                            <button type="button" class="mode-tab active" id="tab-mode-real"
+                                onclick="setDriverMode(false)">
+                                <span class="tab-icon">📱</span>
+                                <div class="tab-text">
+                                    <b>Real Device GPS (প্রকৃত জিপিএস)</b>
+                                    <small>Live tracking from your phone while driving</small>
+                                </div>
+                            </button>
+                            <button type="button" class="mode-tab" id="tab-mode-sim" onclick="setDriverMode(true)">
+                                <span class="tab-icon">🤖</span>
+                                <div class="tab-text">
+                                    <b>Simulation (ভার্চুয়াল ডেমো)</b>
+                                    <small>Route demo along Barishal roads</small>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="sim-controls" class="sim-speed-box" style="display: none;">
+                        <label for="sim-speed-slider">Simulation Speed: <b id="sim-speed-label">35 km/h</b></label>
+                        <input type="range" id="sim-speed-slider" min="10" max="70" value="35"
+                            oninput="updateSimSpeed(this.value)">
+                    </div>
+
+                    <!-- Mobile Phone Connection Helper -->
+                    <div class="card mobile-connect-card">
+                        <div class="mobile-connect-header">
+                            <span>🌐</span>
+                            <b>Permanent Live Link (সরাসরি মোবাইলে চালানোর লিংক):</b>
+                        </div>
+                        <div class="mobile-url-row" style="margin-bottom: 8px;">
+                            <code id="mobile-live-url">https://bu-smart-bus-web.onrender.com</code>
+                            <button class="btn btn-sm btn-outline" onclick="copyLiveUrl()" id="btn-copy-live-url">📋
+                                Copy</button>
+                        </div>
+                        <div style="font-size:0.75rem; color:#166534; margin-bottom:6px;">
+                            ☁️ <b>ক্লাউড হোস্টেড:</b> আপনার পিসি বন্ধ থাকলেও এই লিংকটি ২৪ ঘণ্টা সার্বক্ষণিক সচল থাকবে।
+                        </div>
+                        <div style="font-size:0.72rem; color:#64748b; margin-bottom:4px;">
+                            📶 <b>লোকাল আইপি (Local Fallback):</b> <code
+                                id="mobile-server-url">http://localhost:5500</code>
+                        </div>
+                        <p class="subtext" style="margin-top:6px; font-size:0.75rem;">
+                            বাস চালক গাড়িতে বসে ফোনের যেকোনো ব্রাউজারে এই লিংকটি খুলে <b>Start Trip</b> চাপলে রিয়েল-টাইম
+                            জিপিএস লোকেশন সরাসরি ম্যাপে ছাত্র-ছাত্রীরা দেখতে পারবে।
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Driver Live Telemetry Card -->
+                <div class="card telemetry-card">
+                    <h3 class="card-heading">Live Telemetry</h3>
+                    <div class="telemetry-grid">
+                        <div class="tele-box">
+                            <span class="label">Speed</span>
+                            <span class="value" id="driver-tele-speed">0 <small>km/h</small></span>
+                        </div>
+                        <div class="tele-box">
+                            <span class="label">Accuracy</span>
+                            <span class="value" id="driver-tele-accuracy">± 0 <small>m</small></span>
+                        </div>
+                        <div class="tele-box">
+                            <span class="label">Heading</span>
+                            <span class="value" id="driver-tele-heading">--°</span>
+                        </div>
+                        <div class="tele-box">
+                            <span class="label">GPS Updates</span>
+                            <span class="value" id="driver-tele-count">0</span>
+                        </div>
+                    </div>
+                    <div class="driver-latlng-row">
+                        <span>Latitude: <b id="driver-tele-lat">--</b></span>
+                        <span>Longitude: <b id="driver-tele-lng">--</b></span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <span>🔒 <b>Driver Security:</b> Drivers are prevented from overwriting location records of other
+                        buses as enforced by Firebase rules.</span>
+                </div>
+            </section>
+
+            <!-- 3. ADMIN & STOPS MANAGEMENT PANEL -->
+            <section id="panel-admin" class="role-panel">
+                <div class="mobile-panel-bar show-mobile">
+                    <button class="btn btn-sm btn-ghost btn-back-map" onclick="setMobileView('map')">
+                        ← 🗺️ লাইভ ম্যাপ দেখুন (View Map)
+                    </button>
+                    <span class="mobile-bar-title">⚙️ Fleet & Stop Manager</span>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title">⚙️ Stop Coordinate & Fleet Manager</h2>
+                    <p class="subtext">Configure verified latitude/longitude coordinates for Barishal bus stops.</p>
+
+                    <div class="alert alert-warning">
+                        <span>📍 <b>Coordinate Verification Rule:</b> Initial stops are flagged as
+                            <code>unverified</code>. Click "Capture from Map" or enter official GPS survey coordinates
+                            to verify a stop.</span>
+                    </div>
+
+                    <div class="card admin-editor-card">
+                        <h3 class="card-heading">Edit Selected Stop</h3>
+
+                        <div class="form-group">
+                            <label for="admin-stop-select">Select Stop:</label>
+                            <select id="admin-stop-select" class="custom-select" onchange="loadStopForAdminEdit()">
+                                <!-- Dynamic -->
+                            </select>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="admin-stop-lat">Latitude:</label>
+                                <input type="number" step="0.000001" id="admin-stop-lat" class="custom-input">
+                            </div>
+                            <div class="form-group">
+                                <label for="admin-stop-lng">Longitude:</label>
+                                <input type="number" step="0.000001" id="admin-stop-lng" class="custom-input">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="admin-coords-ready">
+                                <span>Mark coordinates as verified (GPS Surveyed)</span>
+                            </label>
+                        </div>
+
+                        <div class="action-buttons-grid">
+                            <button class="btn btn-secondary" onclick="enableMapCoordinatePicker()">
+                                🎯 Click Map to Set Coords
+                            </button>
+                            <button class="btn btn-primary" onclick="saveAdminStopCoordinates()">
+                                💾 Save Stop Config
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card fleet-overview-card">
+                        <h3 class="card-heading">Active Fleet Overview</h3>
+                        <div id="admin-fleet-table" class="fleet-table-container">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. SYSTEM DOCUMENTATION & REPORT -->
+            <section id="panel-docs" class="role-panel">
+                <div class="mobile-panel-bar show-mobile">
+                    <button class="btn btn-sm btn-ghost btn-back-map" onclick="setMobileView('map')">
+                        ← 🗺️ লাইভ ম্যাপ দেখুন (View Map)
+                    </button>
+                    <span class="mobile-bar-title">📄 System Docs</span>
+                </div>
+
+                <div class="panel-section docs-content">
+                    <h2 class="section-title">📄 Project Architecture & CSE Documentation</h2>
+
+                    <h3>University of Barishal Bus Routing Structure</h3>
+                    <p>Beside the Kirtankhola river, the bus fleet operates across three verified artery routes
+                        connecting Barishal city to the campus at Karnakati:</p>
+
+                    <ul class="docs-list">
+                        <li><b>ROUTE_01 (Barishal Club):</b> Barishal Club Limited to University of Barishal Campus (6.5
+                            km, ~18 min). <a href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                        <li><b>ROUTE_02 (Natun Bazar):</b> 7 stops via Natun Bazar, Bottola Mor, Karim Kutir (Major M A
+                            Jalil Rd direct), Chowmatha Autostand, Amtola Bus Stop, Rupatoli Roundabout, BU Campus (10.4
+                            km, ~32 min). <a href="https://maps.app.goo.gl/SaP8cqCmoT3Mytny8" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                        <li><b>ROUTE_03 (Nathullabad):</b> Nathullabad to University of Barishal Campus (7.7 km, ~19
+                            min). <a href="https://maps.app.goo.gl/chtPYLhJ5Bkz8TCW7" target="_blank"
+                                style="color:var(--primary); text-decoration:underline;">Google Maps Link ↗</a></li>
+                    </ul>
+
+                    <h3>Mathematical Models Used</h3>
+                    <div class="math-box">
+                        <b>Haversine Formula (Great-Circle Distance):</b>
+                        <code>d = 2R × asin(√(sin²(Δφ/2) + cos φ₁ cos φ₂ sin²(Δλ/2)))</code>
+                        <br><br>
+                        <b>Road Distance & ETA Model:</b>
+                        <code>RoadDist = Haversine × 1.28</code><br>
+                        <code>ETA = (RoadDist / EffectiveSpeed) + (StopsRemaining × 45s dwell)</code>
+                    </div>
+
+                    <h3>Firebase Database & Android Conversion</h3>
+                    <p>This web dashboard uses the exact same data schema as the native Kotlin Android project created
+                        in <code>bu-smart-bus-tracker</code>. To convert this directly to an Android APK, run:</p>
+                    <pre class="code-snippet">npx @capacitor/cli create
+npx cap add android
+npx cap open android</pre>
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- Right Side: Interactive Live Map Viewport -->
+        <section class="map-viewport-container" id="map-viewport-container">
+            <!-- Mobile Floating Bus Status Pill (Top on Mobile) -->
+            <div class="mobile-map-pill" id="mobile-map-pill" onclick="setMobileView('panel', 'student')"
+                title="বিস্তারিত দেখতে ট্যাপ করুন">
+                <div class="pill-left">
+                    <div class="pill-icon-wrapper">
+                        <span class="pill-bus-icon">🚍</span>
+                        <span class="pill-status-dot offline" id="mobile-pill-status-dot"></span>
+                    </div>
+                    <div class="pill-info">
+                        <div class="pill-name" id="mobile-pill-bus-name">Dhanshiri (ধানসিঁড়ি)</div>
+                        <div class="pill-sub" id="mobile-pill-sub">Checking GPS...</div>
+                    </div>
+                </div>
+                <div class="pill-right">
+                    <div class="pill-eta-box">
+                        <span class="pill-eta-label">ETA</span>
+                        <span class="pill-eta-val" id="mobile-pill-eta">-- min</span>
+                    </div>
+                    <span class="pill-arrow">›</span>
+                </div>
+            </div>
+
+            <div id="map" class="map-container"></div>
+
+            <!-- Map Floating Controls -->
+            <div class="map-floating-overlay">
+                <div class="overlay-card route-legend">
+                    <div class="legend-header">
+                        <span class="legend-dot" id="legend-route-color"></span>
+                        <b id="legend-route-title">Barishal Club Route</b>
+                    </div>
+                    <div class="legend-stats">
+                        <span id="legend-stops-info">7 Stops</span> •
+                        <span id="legend-distance-info">~6.5 km total (18 min)</span>
+                    </div>
+                    <a id="legend-gmaps-link" href="https://maps.app.goo.gl/E2p4onwkpQKCKnqo8" target="_blank"
+                        class="legend-gmaps-btn" title="Open verified route in Google Maps">🗺️ Open in Google Maps
+                        ↗</a>
+                </div>
+
+                <div class="overlay-quick-controls">
+                    <button class="map-icon-btn" title="Find My Location (আমার লোকেশন)" onclick="locateStudent()"
+                        id="btn-map-my-location">🎯</button>
+                    <button class="map-icon-btn" title="Center Bus (বাসে ফোকাস)" onclick="focusOnBus()">🚍</button>
+                    <button class="map-icon-btn" title="Center University (ববি ক্যাম্পাস)"
+                        onclick="focusOnBU()">🏛️</button>
+                    <button class="map-icon-btn" title="Fit Entire Route (পুরো রুট)"
+                        onclick="fitRouteBounds()">🗺️</button>
+                    <button class="map-icon-btn" title="Manual GPS Coordinates (ম্যানুয়াল জিপিএস)"
+                        onclick="toggleManualGpsCard()" id="btn-toggle-gps">📍</button>
+                </div>
+            </div>
+
+            <!-- Manual GPS Coordinate Locator Widget -->
+            <div class="manual-gps-card" id="manual-gps-box">
+                <div class="manual-gps-header">
+                    <div class="manual-gps-title">
+                        <span>📍</span>
+                        <b>Manual GPS Locator</b>
+                    </div>
+                    <button class="btn-sm btn-ghost" onclick="toggleManualGpsCard()" title="Close / Hide"
+                        style="padding:2px 8px; font-weight:700;">✕</button>
+                </div>
+                <div class="manual-gps-body" id="manual-gps-body">
+                    <p class="gps-hint">Enter Lat & Lng manually, click presets, or click anywhere on map:</p>
+                    <div class="gps-inputs-row">
+                        <div class="input-col">
+                            <label>Latitude (অক্ষাংশ)</label>
+                            <input type="number" id="input-manual-lat" step="any" value="22.65987"
+                                placeholder="22.65987">
+                        </div>
+                        <div class="input-col">
+                            <label>Longitude (দ্রাঘিমাংশ)</label>
+                            <input type="number" id="input-manual-lng" step="any" value="90.36211"
+                                placeholder="90.36211">
+                        </div>
+                    </div>
+
+                    <div class="gps-actions-row">
+                        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="locateCustomCoordinates()">🎯
+                            Show on Map</button>
+                        <button class="btn btn-secondary btn-sm" style="flex:1;"
+                            onclick="setManualAsStudentLocation()">🎓 Set as Student Pin</button>
+                        <button class="btn btn-danger-ghost btn-sm" onclick="clearManualPin()"
+                            title="Clear Pin">✕</button>
+                    </div>
+
+                    <div class="quick-presets">
+                        <span class="preset-label">Presets:</span>
+                        <button class="preset-pill" onclick="applyPresetCoords(22.65987, 90.36211, 'BU Campus')">BU
+                            Campus</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.69736, 90.36993, 'Barishal Club')">Club</button>
+                        <button class="preset-pill" onclick="applyPresetCoords(22.71038, 90.36360, 'New Bazar')">New
+                            Bazar</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.71370, 90.35037, 'Nathullabad')">Nathullabad</button>
+                        <button class="preset-pill"
+                            onclick="applyPresetCoords(22.67850, 90.35450, 'Rupatali')">Rupatali</button>
+                    </div>
+
+                    <div id="manual-gps-result" class="gps-result-box" style="display:none;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar (Visible only on mobile/tablet screens) -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="mobile-nav-btn active" id="mob-nav-map" onclick="setMobileView('map')">
+            <span class="mob-icon">🗺️</span>
+            <span class="mob-label">লাইভ ম্যাপ</span>
+        </button>
+        <button class="mobile-nav-btn" id="mob-nav-student" onclick="setMobileView('panel', 'student')">
+            <span class="mob-icon">🚌</span>
+            <span class="mob-label">বাস ও স্টপ</span>
+        </button>
+        <button class="mobile-nav-btn" id="mob-nav-driver" onclick="setMobileView('panel', 'driver')">
+            <span class="mob-icon">🚍</span>
+            <span class="mob-label">ড্রাইভার</span>
+            <span class="mob-live-badge" id="mob-driver-live-badge" style="display:none;">LIVE</span>
+        </button>
+        <button class="mobile-nav-btn" id="mob-nav-admin" onclick="setMobileView('panel', 'admin')">
+            <span class="mob-icon">⚙️</span>
+            <span class="mob-label">ম্যানেজার</span>
+        </button>
+        <a class="mobile-nav-btn" href="/download-apk" download="bu-smart-bus.apk" style="text-decoration:none;">
+            <span class="mob-icon">📲</span>
+            <span class="mob-label">অ্যাপ APK</span>
+        </a>
+    </nav>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Application Modules (with cache busters) -->
+    <script src="data.js?v=20261017_4"></script>
+    <script src="eta.js?v=20261017_4"></script>
+    <script src="driver.js?v=20261017_4"></script>
+    <script src="student.js?v=20261017_4"></script>
+    <script src="admin.js?v=20261017_4"></script>
+    <script src="app.js?v=20261017_4"></script>
+</body>
+
+</html>

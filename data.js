@@ -3,6 +3,29 @@
 // Route 1: Barishal Club Limited -> University of Barishal (6.5 km, 18 min)
 // Route 2: Natun Bazar -> Bottola -> Major M A Jalil Road (Direct) -> Chowmatha -> Amtola -> Rupatoli -> BU (10.4 km, 32 min)
 // Route 3: Nathullabad -> University of Barishal (7.7 km, 19 min)
+// Universal API Base for Web & Android App
+const BU_API = {
+    getBaseUrl: function() {
+        if (typeof window !== 'undefined' && window.location) {
+            const host = window.location.hostname;
+            // When hosted on Web / Render / Railway / Custom Domain (not localhost / file)
+            if (host && !host.includes('localhost') && !host.includes('127.0.0.1') && window.location.protocol.startsWith('http')) {
+                return window.location.origin;
+            }
+        }
+        // When running inside Android Capacitor APK or custom network
+        const customUrl = (typeof localStorage !== 'undefined') ? localStorage.getItem('BU_SERVER_URL') : null;
+        if (customUrl) return customUrl.replace(/\/+$/, '');
+
+        // Official Render Live Cloud Backend
+        return "https://bu-smart-traker.onrender.com";
+    },
+    url: function(endpoint) {
+        const base = this.getBaseUrl();
+        const ep = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+        return `${base}${ep}`;
+    }
+};
 
 const BU_ROUTES_DATA = {
   "university": {
