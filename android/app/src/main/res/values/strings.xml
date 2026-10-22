@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">BU Bus Tracker</string>
-    <string name="title_activity_main">BU Bus Tracker</string>
+    <string name="app_name">BU Smart Bus</string>
+    <string name="title_activity_main">BU Smart Bus</string>
     <string name="package_name">com.bu.smartbus</string>
     <string name="custom_url_scheme">com.bu.smartbus</string>
 </resources>

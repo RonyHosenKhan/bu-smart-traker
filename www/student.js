@@ -10,7 +10,8 @@ const BU_STUDENT = {
     // Markers and layers
     routePolylineLayer: null,
     stopMarkersLayer: null,
-    busMarker: null,
+    busMarkers: {}, // Map of busId -> L.marker
+    activeBuses: {}, // Map of busId -> locationData
     studentMarker: null,
     studentAccuracyCircle: null,
     cloudEventSource: null,
@@ -32,25 +33,35 @@ const BU_STUDENT = {
         this.renderSelectedRoute();
         this.listenForBroadcasts();
 
-        // Check for pre-existing active location in storage
-        const stored = localStorage.getItem(`BU_LIVE_LOCATION_${this.selectedBusId}`);
-        if (stored) {
-            try {
-                this.onLiveLocationReceived(JSON.parse(stored));
-            } catch (e) { }
+        // Check for pre-existing active locations in storage for all buses
+        if (typeof BU_ROUTES_DATA !== 'undefined' && BU_ROUTES_DATA.buses) {
+            BU_ROUTES_DATA.buses.forEach(b => {
+                const stored = localStorage.getItem(`BU_LIVE_LOCATION_${b.id}`);
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (parsed && parsed.trackingStatus !== 'STOPPED' && !parsed.isStopped && (Date.now() - (parsed.timestamp || 0) < 60000)) {
+                            this.onLiveLocationReceived(parsed);
+                        }
+                    } catch (e) { }
+                }
+            });
         }
 
         // Fetch immediately from local / cloud server API
         this.pollServerLocation();
 
-        // Continuous server API polling every 2.5 seconds
-        this.pollIntervalId = setInterval(() => this.pollServerLocation(), 2500);
+        // Continuous server API polling every 1.5 seconds for multi-device updates
+        this.pollIntervalId = setInterval(() => this.pollServerLocation(), 1500);
 
         // Start Cloud SSE stream for cross-internet mobile tracking
         this.initCloudSseStream();
 
         // Periodic ticker to check if bus location has become STALE or OFFLINE
-        setInterval(() => this.updateStatusAndEta(), 2000);
+        setInterval(() => this.updateStatusAndEta(), 1500);
+
+        // Periodic ticker to clean up any bus that stopped or timed out (> 60s)
+        setInterval(() => this.cleanupStaleBuses(), 3000);
     },
 
     initMap: function () {
@@ -426,7 +437,10 @@ const BU_STUDENT = {
         if (typeof BroadcastChannel !== 'undefined') {
             const channel = new BroadcastChannel('BU_BUS_CHANNEL');
             channel.onmessage = (event) => {
-                if (event.data && event.data.type === "BUS_LOCATION_UPDATE" && event.data.data) {
+                if (!event.data) return;
+                if (event.data.type === "BUS_STOP_TRIP" && event.data.busId) {
+                    this.removeBusMarker(event.data.busId);
+                } else if (event.data.type === "BUS_LOCATION_UPDATE" && event.data.data) {
                     this.onLiveLocationReceived(event.data.data);
                 }
             };
@@ -434,23 +448,52 @@ const BU_STUDENT = {
 
         // 2. Storage event listener fallback (same origin tabs)
         window.addEventListener('storage', (e) => {
-            if (e.key === "BU_LATEST_LOCATION_UPDATE" && e.newValue) {
+            if (e.key === "BU_BUS_STOPPED_EVENT" && e.newValue) {
                 try {
-                    this.onLiveLocationReceived(JSON.parse(e.newValue));
+                    const stopped = JSON.parse(e.newValue);
+                    if (stopped && stopped.busId) {
+                        this.removeBusMarker(stopped.busId);
+                    }
+                } catch (err) { }
+            } else if (e.key === "BU_LATEST_LOCATION_UPDATE" && e.newValue) {
+                try {
+                    const loc = JSON.parse(e.newValue);
+                    if (loc && loc.busId) {
+                        if (loc.trackingStatus === "STOPPED" || loc.isStopped) {
+                            this.removeBusMarker(loc.busId);
+                        } else {
+                            this.onLiveLocationReceived(loc);
+                        }
+                    }
                 } catch (err) { }
             }
         });
     },
 
     pollServerLocation: function () {
-        if (!this.selectedBusId) return;
-        fetch(BU_API.url(`/api/location?busId=${this.selectedBusId}`))
+        fetch(BU_API.url('/api/location'))
             .then(res => res.json())
             .then(data => {
-                if (data && data.lat && data.lng) {
-                    // Update if this is newer than current or we don't have location yet
-                    if (!this.latestBusLocation || (data.timestamp && data.timestamp > (this.latestBusLocation.timestamp || 0))) {
-                        this.onLiveLocationReceived(data);
+                if (!data || typeof data !== 'object') return;
+
+                const busesMap = data.busId ? { [data.busId]: data } : data;
+                const activeServerIds = new Set();
+
+                for (const [busId, loc] of Object.entries(busesMap)) {
+                    if (loc && loc.lat && loc.lng) {
+                        if (loc.trackingStatus === 'STOPPED' || loc.isStopped) {
+                            this.removeBusMarker(busId);
+                        } else {
+                            activeServerIds.add(busId);
+                            this.onLiveLocationReceived(loc);
+                        }
+                    }
+                }
+
+                // Any bus marker currently on map that is no longer returned as active by server should be erased
+                for (const localBusId in this.busMarkers) {
+                    if (!activeServerIds.has(localBusId)) {
+                        this.removeBusMarker(localBusId);
                     }
                 }
             })
@@ -462,71 +505,154 @@ const BU_STUDENT = {
             if (this.cloudEventSource) {
                 this.cloudEventSource.close();
             }
-            const sseUrl = `https://ntfy.sh/bu_bus_live_${this.selectedBusId}/sse`;
+            // Listen to global multi-bus SSE stream
+            const sseUrl = `https://ntfy.sh/bu_bus_live_all/sse`;
             this.cloudEventSource = new EventSource(sseUrl);
             this.cloudEventSource.onmessage = (e) => {
                 try {
                     const data = JSON.parse(e.data);
                     const payload = data.message ? JSON.parse(data.message) : data;
-                    if (payload && payload.busId === this.selectedBusId) {
-                        this.onLiveLocationReceived(payload);
+                    if (payload && payload.busId) {
+                        if (payload.trackingStatus === "STOPPED" || payload.isStopped) {
+                            this.removeBusMarker(payload.busId);
+                        } else {
+                            this.onLiveLocationReceived(payload);
+                        }
                     }
                 } catch (err) { }
             };
         } catch (e) { }
     },
 
+    removeBusMarker: function (busId) {
+        if (!busId) return;
+        if (this.busMarkers[busId]) {
+            this.map.removeLayer(this.busMarkers[busId]);
+            delete this.busMarkers[busId];
+        }
+        delete this.activeBuses[busId];
+        try {
+            localStorage.removeItem(`BU_LIVE_LOCATION_${busId}`);
+        } catch (e) { }
+
+        if (this.selectedBusId === busId) {
+            this.latestBusLocation = null;
+            this.updateStatusAndEta();
+            this.updateCardInfo();
+        }
+    },
+
+    onBusStopped: function (busId) {
+        this.removeBusMarker(busId);
+    },
+
+    cleanupStaleBuses: function () {
+        const now = Date.now();
+        for (const busId in this.activeBuses) {
+            const loc = this.activeBuses[busId];
+            if (!loc || loc.trackingStatus === 'STOPPED' || loc.isStopped || (now - (loc.timestamp || 0) > 60000)) {
+                this.removeBusMarker(busId);
+            }
+        }
+    },
+
     onLiveLocationReceived: function (loc) {
-        if (!loc || loc.busId !== this.selectedBusId) return;
+        if (!loc || !loc.busId) return;
 
         if (loc.trackingStatus === "STOPPED" || loc.isStopped) {
-            if (this.busMarker) {
-                this.map.removeLayer(this.busMarker);
-                this.busMarker = null;
-            }
-            this.latestBusLocation = null;
-            this.updateCardInfo();
-            this.updateStatusAndEta();
+            this.removeBusMarker(loc.busId);
             return;
         }
 
-        this.latestBusLocation = loc;
+        // Save into active buses map
+        this.activeBuses[loc.busId] = loc;
+
+        // Render or update car/bus marker on map
         this.updateBusMarkerOnMap(loc);
-        this.updateCardInfo();
-        this.updateStatusAndEta();
+
+        // If this matches the selected bus, update telemetry card and live ETA
+        if (loc.busId === this.selectedBusId) {
+            this.latestBusLocation = loc;
+            this.updateCardInfo();
+            this.updateStatusAndEta();
+        }
     },
 
     updateBusMarkerOnMap: function (loc) {
         if (!loc || !loc.lat || !loc.lng) return;
         const pos = [loc.lat, loc.lng];
 
-        if (!this.busMarker) {
+        const bus = BU_ROUTES_DATA.buses.find(b => b.id === loc.busId);
+        const route = BU_ROUTES_DATA.routes.find(r => r.id === (loc.routeId || (bus ? bus.routeId : "ROUTE_01")));
+
+        const routeColor = (route && route.color) ? route.color : "#0B57D0";
+        const busName = bus ? bus.name : (loc.busId || "BU Bus");
+        const driverName = (bus && bus.driver) ? bus.driver : (loc.driverName || "Driver");
+        const routeName = route ? route.nameBn : "BU Route";
+        const shortName = busName.split(' ')[0] || "BUS";
+
+        if (!this.busMarkers[loc.busId]) {
             const busIcon = L.divIcon({
                 className: 'custom-bus-div',
                 html: `
-                    <div class="bus-pulse-ring"></div>
-                    <div class="bus-marker-icon" id="bus-icon-element">
+                    <div class="bus-pulse-ring" style="background:${routeColor}33;"></div>
+                    <div class="bus-marker-icon" id="bus-icon-element-${loc.busId}" style="background:${routeColor}; border: 3px solid white;">
                         🚍
+                        <div class="bus-badge-label" style="background:${routeColor};">${shortName}</div>
                     </div>
                 `,
                 iconSize: [44, 44],
                 iconAnchor: [22, 22]
             });
 
-            this.busMarker = L.marker(pos, { icon: busIcon, zIndexOffset: 1000 }).addTo(this.map);
-            const bus = BU_ROUTES_DATA.buses.find(b => b.id === this.selectedBusId);
-            const name = bus ? bus.name : "BU Bus";
-            this.busMarker.bindPopup(`<b>${name}</b><br>Live GPS Active`);
+            const marker = L.marker(pos, { icon: busIcon, zIndexOffset: 1000 }).addTo(this.map);
+
+            const popupHtml = `
+                <div style="font-family: inherit; font-size: 0.85rem; min-width: 170px; line-height: 1.4;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a; margin-bottom: 2px;">🚍 ${busName}</div>
+                    <div style="color: #64748b; font-size: 0.75rem; margin-bottom: 6px;">👤 ${driverName}<br>🛣️ ${routeName}</div>
+                    <div style="display: flex; justify-content: space-between; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.78rem; margin-bottom: 8px;">
+                        <span>স্পিড:</span> <span style="color:#0B57D0;">${loc.speed || 0} km/h</span>
+                    </div>
+                    <button onclick="BU_STUDENT.selectBusById('${loc.busId}')" style="width: 100%; background: #0B57D0; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        🎯 এই বাসটি ট্র্যাক করুন
+                    </button>
+                </div>
+            `;
+            marker.bindPopup(popupHtml);
+            this.busMarkers[loc.busId] = marker;
         } else {
             // Smoothly move marker
-            this.busMarker.setLatLng(pos);
+            this.busMarkers[loc.busId].setLatLng(pos);
         }
 
         // Rotate heading if available
-        const iconEl = document.getElementById("bus-icon-element");
+        const iconEl = document.getElementById(`bus-icon-element-${loc.busId}`);
         if (iconEl && loc.heading) {
             iconEl.style.transform = `rotate(${loc.heading}deg)`;
         }
+    },
+
+    selectBusById: function (busId) {
+        const bus = BU_ROUTES_DATA.buses.find(b => b.id === busId);
+        if (!bus) return;
+
+        if (this.selectedRouteId !== bus.routeId) {
+            this.selectedRouteId = bus.routeId;
+            const routeSelect = document.getElementById("student-route-select");
+            if (routeSelect) routeSelect.value = bus.routeId;
+            this.updateBusDropdownForRoute();
+            this.renderSelectedRoute();
+        }
+
+        this.selectedBusId = busId;
+        const busSelect = document.getElementById("student-bus-select");
+        if (busSelect) busSelect.value = busId;
+
+        this.latestBusLocation = this.activeBuses[busId] || null;
+        this.updateCardInfo();
+        this.updateStatusAndEta();
+        this.focusBus();
     },
 
     updateCardInfo: function () {
@@ -619,12 +745,12 @@ const BU_STUDENT = {
     },
 
     focusBus: function () {
-        if (this.latestBusLocation && this.latestBusLocation.lat && this.latestBusLocation.lng) {
+        if (this.latestBusLocation) {
             this.map.flyTo([this.latestBusLocation.lat, this.latestBusLocation.lng], 16);
-        } else if (this.busMarker) {
-            this.map.flyTo(this.busMarker.getLatLng(), 16);
+        } else if (this.busMarkers[this.selectedBusId]) {
+            this.map.flyTo(this.busMarkers[this.selectedBusId].getLatLng(), 16);
         } else {
-            alert("Bus location has not been received yet. Start the trip in Driver Cockpit first!");
+            alert("This bus has not started its trip yet (Currently Offline). Start the trip in Driver Cockpit!");
         }
     },
 
@@ -776,21 +902,12 @@ function onStudentRouteChange() {
 function onStudentBusChange() {
     const sel = document.getElementById("student-bus-select");
     BU_STUDENT.selectedBusId = sel.value;
-    if (BU_STUDENT.busMarker) {
-        BU_STUDENT.map.removeLayer(BU_STUDENT.busMarker);
-        BU_STUDENT.busMarker = null;
-    }
-    BU_STUDENT.latestBusLocation = null;
+    BU_STUDENT.latestBusLocation = BU_STUDENT.activeBuses[sel.value] || null;
     BU_STUDENT.updateCardInfo();
     BU_STUDENT.updateStatusAndEta();
-    const stored = localStorage.getItem(`BU_LIVE_LOCATION_${sel.value}`);
-    if (stored) {
-        try {
-            BU_STUDENT.onLiveLocationReceived(JSON.parse(stored));
-        } catch (e) { }
+    if (BU_STUDENT.latestBusLocation) {
+        BU_STUDENT.focusBus();
     }
-    BU_STUDENT.pollServerLocation();
-    BU_STUDENT.initCloudSseStream();
 }
 
 function locateStudent() {
