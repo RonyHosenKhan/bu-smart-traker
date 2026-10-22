@@ -6,7 +6,7 @@ const BU_DRIVER = {
     activeBusId: "BUS_BRTC_04",
     activeRouteId: "ROUTE_01",
     isTracking: false,
-    isSimMode: true, // Default to Route Demo so testing immediately shows live bus moving on map
+    isSimMode: false, // Default to REAL DEVICE GPS
     simSpeedKmh: 35,
     updateCount: 0,
     watchId: null,
@@ -142,21 +142,23 @@ const BU_DRIVER = {
 
     broadcastInitialPoint: function () {
         const bus = BU_ROUTES_DATA.buses.find(b => b.id === this.activeBusId);
-        const wps = this.simState.waypoints;
-        const initialCoord = (wps && wps.length > 0) ? wps[0] : { lat: 22.69749, lng: 90.36998 };
+        const route = BU_ROUTES_DATA.routes.find(r => r.id === this.activeRouteId);
+        const firstStop = (route && route.stopIds && route.stopIds.length > 0) ? BU_ROUTES_DATA.stops[route.stopIds[0]] : null;
+        const initLat = (this.lastGpsPoint && this.lastGpsPoint.lat) || (firstStop ? firstStop.lat : 22.69749);
+        const initLng = (this.lastGpsPoint && this.lastGpsPoint.lng) || (firstStop ? firstStop.lng : 90.36998);
 
         this.currentLocation = {
             busId: this.activeBusId,
             routeId: this.activeRouteId,
             driverName: bus ? bus.driver : "Driver",
-            lat: initialCoord.lat,
-            lng: initialCoord.lng,
+            lat: initLat,
+            lng: initLng,
             speed: 0,
             accuracy: 8,
             heading: 195,
             timestamp: Date.now(),
             trackingStatus: "ACTIVE",
-            source: "INITIAL_START"
+            source: this.isSimMode ? "SIMULATION" : "REAL_GPS_INITIAL"
         };
         this.updateCount = 1;
         this.broadcastLocation();
@@ -196,10 +198,12 @@ const BU_DRIVER = {
             if (stuBusSelect) stuBusSelect.value = this.activeBusId;
         }
 
+        // Broadcast initial coordinate on tick 0 so the bus icon appears on the map immediately!
+        this.broadcastInitialPoint();
+
         if (this.isSimMode) {
             this.startSimulation();
         } else {
-            this.broadcastInitialPoint();
             this.startHardwareGps();
         }
     },
@@ -212,10 +216,14 @@ const BU_DRIVER = {
             navigator.geolocation.clearWatch(this.watchId);
             this.watchId = null;
         }
+        this.hasFallbackWatch = false;
 
-        document.getElementById("btn-start-trip").disabled = false;
-        document.getElementById("btn-stop-trip").disabled = true;
-        document.getElementById("driver-bus-select").disabled = false;
+        const startBtn = document.getElementById("btn-start-trip");
+        const stopBtn = document.getElementById("btn-stop-trip");
+        const busSelect = document.getElementById("driver-bus-select");
+        if (startBtn) startBtn.disabled = false;
+        if (stopBtn) stopBtn.disabled = true;
+        if (busSelect) busSelect.disabled = false;
 
         const viewMapBtn = document.getElementById("btn-driver-view-map");
         if (viewMapBtn) viewMapBtn.style.display = "none";
@@ -231,73 +239,18 @@ const BU_DRIVER = {
         const mobBadge = document.getElementById("mob-driver-live-badge");
         if (mobBadge) mobBadge.style.display = "none";
 
-        const stopPayload = {
-            busId: this.activeBusId,
-            routeId: this.activeRouteId,
-            trackingStatus: "STOPPED",
-            isStopped: true,
-            timestamp: Date.now(),
-            speed: 0
-        };
+        this.currentLocation.trackingStatus = "STOPPED";
+        this.currentLocation.isStopped = true;
+        this.currentLocation.timestamp = Date.now();
+        this.currentLocation.speed = 0;
 
-        this.broadcastStop(stopPayload);
+        this.broadcastLocation();
         this.updateTelemetryUI();
-    },
-
-    broadcastStop: function (stopPayload) {
-        const payload = JSON.stringify(stopPayload);
-
-        // 1. Same-device multi-tab BroadcastChannel
-        try {
-            if (this.channel) {
-                this.channel.postMessage({
-                    type: "BUS_STOP_TRIP",
-                    busId: this.activeBusId,
-                    data: stopPayload
-                });
-            }
-        } catch (e) { }
-
-        // 2. Storage event
-        try {
-            localStorage.removeItem(`BU_LIVE_LOCATION_${this.activeBusId}`);
-            localStorage.setItem("BU_BUS_STOPPED_EVENT", payload);
-        } catch (e) { }
-
-        // 3. Local & Cloud Server REST API (POST STOPPED + DELETE)
-        try {
-            fetch(BU_API.url('/api/location'), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: payload
-            }).catch(() => { });
-
-            fetch(BU_API.url(`/api/location?busId=${this.activeBusId}`), {
-                method: 'DELETE'
-            }).catch(() => { });
-        } catch (e) { }
-
-        // 4. Free Cloud Pub/Sub relay (ntfy.sh)
-        try {
-            fetch(`https://ntfy.sh/bu_bus_live_all`, {
-                method: 'POST',
-                body: payload
-            }).catch(() => { });
-            fetch(`https://ntfy.sh/bu_bus_live_${this.activeBusId}`, {
-                method: 'POST',
-                body: payload
-            }).catch(() => { });
-        } catch (e) { }
-
-        // 5. Update local student engine immediately
-        if (window.BU_STUDENT && typeof window.BU_STUDENT.onBusStopped === 'function') {
-            window.BU_STUDENT.onBusStopped(this.activeBusId);
-        }
     },
 
     startSimulation: function () {
         if (this.simIntervalId) clearInterval(this.simIntervalId);
-        // Immediate step on tick 0 so the bus immediately moves and appears on the map!
+        // Immediate step on tick 0
         this.stepSimulation();
         this.simIntervalId = setInterval(() => {
             if (!this.isTracking) return;
@@ -363,89 +316,115 @@ const BU_DRIVER = {
             return;
         }
 
+        // Request Capacitor Android permissions if inside APK
+        if (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Geolocation) {
+            try {
+                window.Capacitor.Plugins.Geolocation.requestPermissions().catch(() => { });
+            } catch (e) { }
+        }
+
+        // Fast initial location lock
+        navigator.geolocation.getCurrentPosition(
+            (pos) => this.processGpsUpdate(pos),
+            (err) => console.log("Initial quick GPS note:", err.message),
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 30000 }
+        );
+
         const options = {
             enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 1000
+            timeout: 12000,
+            maximumAge: 3000
         };
 
         this.watchId = navigator.geolocation.watchPosition(
-            (pos) => {
-                const curLat = pos.coords.latitude;
-                const curLng = pos.coords.longitude;
-                const curTime = Date.now();
-
-                // Dynamic speed calculation (handles devices where pos.coords.speed is null/0)
-                let speedKmh = 0;
-                if (pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed > 0) {
-                    speedKmh = Math.round(pos.coords.speed * 3.6);
-                } else if (this.lastGpsPoint) {
-                    const distKm = BU_ETA.haversineDistance(this.lastGpsPoint.lat, this.lastGpsPoint.lng, curLat, curLng);
-                    const timeDeltaHr = (curTime - this.lastGpsPoint.time) / 3600000;
-                    if (timeDeltaHr > 0.0001) {
-                        const calculatedSpeed = Math.round(distKm / timeDeltaHr);
-                        if (calculatedSpeed < 120) {
-                            speedKmh = calculatedSpeed;
-                        }
-                    }
-                }
-
-                // Dynamic compass heading calculation
-                let headingDeg = 0;
-                if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading > 0) {
-                    headingDeg = Math.round(pos.coords.heading);
-                } else if (this.lastGpsPoint) {
-                    const p1 = this.lastGpsPoint;
-                    const p2 = { lat: curLat, lng: curLng };
-                    const distM = BU_ETA.haversineDistance(p1.lat, p1.lng, p2.lat, p2.lng) * 1000;
-                    if (distM > 2.5) {
-                        const y = Math.sin((p2.lng - p1.lng) * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180);
-                        const x = Math.cos(p1.lat * Math.PI / 180) * Math.sin(p2.lat * Math.PI / 180) -
-                            Math.sin(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.cos((p2.lng - p1.lng) * Math.PI / 180);
-                        headingDeg = Math.round((Math.atan2(y, x) * 180 / Math.PI + 360) % 360);
-                    } else {
-                        headingDeg = this.currentLocation.heading || 0;
-                    }
-                }
-
-                this.lastGpsPoint = { lat: curLat, lng: curLng, time: curTime };
-
-                const bus = BU_ROUTES_DATA.buses.find(b => b.id === this.activeBusId);
-
-                this.currentLocation = {
-                    busId: this.activeBusId,
-                    routeId: this.activeRouteId,
-                    driverName: bus ? bus.driver : "Driver",
-                    lat: curLat,
-                    lng: curLng,
-                    speed: speedKmh,
-                    accuracy: Math.round(pos.coords.accuracy || 6),
-                    heading: headingDeg,
-                    timestamp: curTime,
-                    trackingStatus: "ACTIVE",
-                    source: "HARDWARE_GPS"
-                };
-
-                this.updateCount++;
-
-                const badge = document.getElementById("driver-trip-badge");
-                if (badge) {
-                    badge.textContent = `LIVE GPS ACTIVE (#${this.updateCount})`;
-                    badge.className = "badge status-active";
-                }
-
-                this.broadcastLocation();
-                this.updateTelemetryUI();
-            },
+            (pos) => this.processGpsUpdate(pos),
             (err) => {
                 console.warn("Driver Hardware GPS Error:", err.message);
                 const badge = document.getElementById("driver-trip-badge");
-                if (badge) {
-                    badge.textContent = `GPS WARNING: ${err.message}`;
+                if (badge && this.updateCount <= 1) {
+                    badge.textContent = `GPS: ${err.message}`;
+                }
+                if (err.code === 3 && !this.hasFallbackWatch && this.isTracking) {
+                    this.hasFallbackWatch = true;
+                    this.watchId = navigator.geolocation.watchPosition(
+                        (p) => this.processGpsUpdate(p),
+                        (e) => console.warn("Fallback GPS Error:", e.message),
+                        { enableHighAccuracy: false, timeout: 15000, maximumAge: 10000 }
+                    );
                 }
             },
             options
         );
+    },
+
+    processGpsUpdate: function (pos) {
+        if (!this.isTracking) return;
+
+        const curLat = pos.coords.latitude;
+        const curLng = pos.coords.longitude;
+        const curTime = Date.now();
+
+        // Dynamic speed calculation
+        let speedKmh = 0;
+        if (pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed > 0) {
+            speedKmh = Math.round(pos.coords.speed * 3.6);
+        } else if (this.lastGpsPoint) {
+            const distKm = BU_ETA.haversineDistance(this.lastGpsPoint.lat, this.lastGpsPoint.lng, curLat, curLng);
+            const timeDeltaHr = (curTime - this.lastGpsPoint.time) / 3600000;
+            if (timeDeltaHr > 0.0001) {
+                const calculatedSpeed = Math.round(distKm / timeDeltaHr);
+                if (calculatedSpeed < 120) {
+                    speedKmh = calculatedSpeed;
+                }
+            }
+        }
+
+        // Dynamic compass heading calculation
+        let headingDeg = 0;
+        if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && pos.coords.heading > 0) {
+            headingDeg = Math.round(pos.coords.heading);
+        } else if (this.lastGpsPoint) {
+            const p1 = this.lastGpsPoint;
+            const p2 = { lat: curLat, lng: curLng };
+            const distM = BU_ETA.haversineDistance(p1.lat, p1.lng, p2.lat, p2.lng) * 1000;
+            if (distM > 2.5) {
+                const y = Math.sin((p2.lng - p1.lng) * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180);
+                const x = Math.cos(p1.lat * Math.PI / 180) * Math.sin(p2.lat * Math.PI / 180) -
+                    Math.sin(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) * Math.cos((p2.lng - p1.lng) * Math.PI / 180);
+                headingDeg = Math.round((Math.atan2(y, x) * 180 / Math.PI + 360) % 360);
+            } else {
+                headingDeg = this.currentLocation.heading || 0;
+            }
+        }
+
+        this.lastGpsPoint = { lat: curLat, lng: curLng, time: curTime };
+
+        const bus = BU_ROUTES_DATA.buses.find(b => b.id === this.activeBusId);
+
+        this.currentLocation = {
+            busId: this.activeBusId,
+            routeId: this.activeRouteId,
+            driverName: bus ? bus.driver : "Driver",
+            lat: curLat,
+            lng: curLng,
+            speed: speedKmh,
+            accuracy: Math.round(pos.coords.accuracy || 6),
+            heading: headingDeg,
+            timestamp: curTime,
+            trackingStatus: "ACTIVE",
+            source: "HARDWARE_GPS"
+        };
+
+        this.updateCount++;
+
+        const badge = document.getElementById("driver-trip-badge");
+        if (badge) {
+            badge.textContent = `LIVE GPS ACTIVE (#${this.updateCount})`;
+            badge.className = "badge status-active";
+        }
+
+        this.broadcastLocation();
+        this.updateTelemetryUI();
     },
 
     broadcastLocation: function () {
@@ -467,7 +446,7 @@ const BU_DRIVER = {
             localStorage.setItem("BU_LATEST_LOCATION_UPDATE", payload);
         } catch (e) { }
 
-        // 3. Local Python Server REST API (multi-device on Wi-Fi / LAN / Server)
+        // 3. Local & Cloud Server REST API
         try {
             fetch(BU_API.url('/api/location'), {
                 method: 'POST',
@@ -478,10 +457,6 @@ const BU_DRIVER = {
 
         // 4. Free Cloud Pub/Sub relay (ntfy.sh) for cellular/internet cross-device sync
         try {
-            fetch(`https://ntfy.sh/bu_bus_live_all`, {
-                method: 'POST',
-                body: payload
-            }).catch(() => { });
             fetch(`https://ntfy.sh/bu_bus_live_${this.activeBusId}`, {
                 method: 'POST',
                 body: payload

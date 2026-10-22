@@ -754,6 +754,11 @@ body {
 }
 
 /* Custom Leaflet Markers */
+.custom-bus-div {
+    background: transparent !important;
+    border: none !important;
+}
+
 .bus-marker-icon {
     width: 44px;
     height: 44px;
@@ -793,6 +798,8 @@ body {
     position: absolute;
     width: 64px;
     height: 64px;
+    top: -10px;
+    left: -10px;
     border-radius: 50%;
     background: rgba(15, 76, 129, 0.25);
     animation: radarPulse 2s infinite ease-out;

@@ -717,24 +717,24 @@
                             Select GPS Source (জিপিএস সোর্স):
                         </label>
                         <div class="mode-tabs">
-                            <button type="button" class="mode-tab active" id="tab-mode-sim" onclick="setDriverMode(true)">
-                                <span class="tab-icon">🤖</span>
-                                <div class="tab-text">
-                                    <b>Route Demo (ভার্চুয়াল টেস্ট ডেমো)</b>
-                                    <small>Auto move bus along Barishal roads</small>
-                                </div>
-                            </button>
-                            <button type="button" class="mode-tab" id="tab-mode-real" onclick="setDriverMode(false)">
+                            <button type="button" class="mode-tab active" id="tab-mode-real" onclick="setDriverMode(false)">
                                 <span class="tab-icon">📱</span>
                                 <div class="tab-text">
                                     <b>Real Device GPS (প্রকৃত জিপিএস)</b>
                                     <small>Live hardware GPS from mobile</small>
                                 </div>
                             </button>
+                            <button type="button" class="mode-tab" id="tab-mode-sim" onclick="setDriverMode(true)">
+                                <span class="tab-icon">🤖</span>
+                                <div class="tab-text">
+                                    <b>Route Demo (ভার্চুয়াল টেস্ট ডেমো)</b>
+                                    <small>Auto move bus along Barishal roads</small>
+                                </div>
+                            </button>
                         </div>
                     </div>
 
-                    <div id="sim-controls" class="sim-speed-box" style="display: flex; margin-bottom: 14px;">
+                    <div id="sim-controls" class="sim-speed-box" style="display: none; margin-bottom: 14px;">
                         <label for="sim-speed-slider">Demo Speed: <b id="sim-speed-label">35 km/h</b></label>
                         <input type="range" id="sim-speed-slider" min="10" max="70" value="35" oninput="updateSimSpeed(this.value)">
                     </div>

@@ -52,8 +52,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.3
-          name: BU Bus Tracker Android APK v1.0.3 (Latest)
+          tag_name: v1.0.4
+          name: BU Bus Tracker Android APK v1.0.4 (Latest)
           overwrite: true
           body: |
             ## 🚍 BU Bus Tracker - Latest Android App (.APK)
