@@ -1758,6 +1758,33 @@ body {
     }
 }
 
+/* App Refresh Button */
+.btn-icon-refresh {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.btn-icon-refresh:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(90deg);
+}
+
+.btn-icon-refresh:active {
+    transform: rotate(180deg) scale(0.95);
+}
+
 /* Android APK Download Elements */
 .btn-apk-header {
     display: inline-flex;
